@@ -8,6 +8,7 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
+  CardFooter,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { auth } from "@/firebase";
@@ -29,14 +30,22 @@ function Auth() {
     <div className="flex justify-center items-center h-screen">
       <Card className="w-[350px]">
         <CardHeader>
-          <CardTitle>Vault</CardTitle>
-          <CardDescription>Sign in with your Google account</CardDescription>
+          <CardTitle className="text-center">Vault</CardTitle>
+          <CardDescription className="text-center">
+            Store your passwords securely
+          </CardDescription>
         </CardHeader>
+
         <CardContent>
           <Button onClick={handleGoogleSignIn} className="w-full">
             Sign in with Google
           </Button>
         </CardContent>
+        <CardFooter className="w-full">
+          <p className=" w-full text-center text-sm italic text-muted-foreground">
+            Your data is end-to-end encrypted
+          </p>
+        </CardFooter>
 
         {error && (
           <Alert variant="destructive" className="mt-4">
