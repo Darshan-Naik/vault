@@ -56,7 +56,10 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
   };
 
   return (
-    <div className="flex-1 sm:p-10 p-4" key={isEdit ? "vault-edit" : "vault"}>
+    <div
+      className="flex-1 sm:px-8 px-4 py-2"
+      key={isEdit ? "vault-edit" : "vault"}
+    >
       <div className="border-b w-full mb-4 p-2 items-center flex justify-between">
         <div className="flex items-center gap-2">
           <ChevronLeft
@@ -87,7 +90,7 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
                     disabled={!vaultData.title.trim()}
                     className="disabled:opacity-20"
                   >
-                    <X className="w-5 h-5 text-secondary-foreground opacity-50 hover:opacity-100 transition-opacity" />
+                    <X className="w-5 h-5 text-secondary-foreground opacity-70 hover:opacity-100 transition-opacity" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -101,7 +104,7 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
                     disabled={!vaultData.title.trim()}
                     className="disabled:opacity-20"
                   >
-                    <Save className="w-5 h-5 text-secondary-foreground opacity-50 hover:opacity-100 transition-opacity" />
+                    <Save className="w-5 h-5 text-secondary-foreground opacity-70 hover:opacity-100 transition-opacity" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -113,7 +116,7 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button onClick={() => setIsEdit(true)}>
-                  <Edit className="w-5 h-5 text-secondary-foreground opacity-50 hover:opacity-100 transition-opacity" />
+                  <Edit className="w-5 h-5 text-secondary-foreground opacity-70 hover:opacity-100 transition-opacity" />
                 </button>
               </TooltipTrigger>
               <TooltipContent>

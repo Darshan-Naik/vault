@@ -41,6 +41,7 @@ const Main = () => {
             vaults={vaults}
             isLoading={isLoading}
             handleVaultSelect={handleVaultSelect}
+            selectedVault={selectedVault}
           />
         </div>
         {selectedVault ? (

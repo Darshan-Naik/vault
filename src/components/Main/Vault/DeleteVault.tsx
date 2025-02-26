@@ -52,7 +52,7 @@ const DeleteVault = ({ vault, handleVaultSelect }: DeleteVaultProps) => {
         <Tooltip>
           <TooltipTrigger asChild>
             <button onClick={() => setIsOpen(true)}>
-              <Trash className="w-5 h-5 text-secondary-foreground opacity-50 hover:opacity-100 transition-opacity" />
+              <Trash className="w-5 h-5 text-secondary-foreground opacity-70 hover:opacity-100 transition-opacity" />
             </button>
           </TooltipTrigger>
           <TooltipContent>

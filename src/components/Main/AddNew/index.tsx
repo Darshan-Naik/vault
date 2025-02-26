@@ -14,7 +14,7 @@ const AddNew = () => {
         <Button
           variant="default"
           size="default"
-          className="justify-start"
+          className="justify-start bg-green-700 text-white"
           onClick={() => setIsOpen(true)}
         >
           <Plus className="h-4 w-4 mr-2" />

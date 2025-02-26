@@ -6,12 +6,14 @@ type VaultListProps = {
   vaults?: TVault[];
   isLoading?: boolean;
   handleVaultSelect: (Vault: TVault) => void;
+  selectedVault?: TVault;
 };
 
 const VaultList = ({
   vaults,
   isLoading,
   handleVaultSelect,
+  selectedVault,
 }: VaultListProps) => {
   return (
     <div className="overflow-y-auto flex-1">
@@ -21,6 +23,7 @@ const VaultList = ({
         ) : vaults && vaults.length > 0 ? (
           vaults.map((vault) => (
             <VaultListItem
+              active={selectedVault?.id === vault.id}
               key={vault.id}
               vault={vault}
               onClick={handleVaultSelect}
