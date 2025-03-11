@@ -16,13 +16,8 @@ const VaultListItem = ({ vault, onClick, active }: VaultListItemProps) => {
       <button
         onClick={() => onClick(vault)}
         className={cn(
-          "group text-left w-full hover:bg-gray-200 rounded-md border px-2 py-1 flex items-center gap-2 transition-colors",
-          {
-            CREDENTIAL: "text-blue-600",
-            BANK: "text-green-600",
-            CARD: "text-red-600",
-          }[vault.type],
-          active && "bg-gray-200 border-blue-600"
+          "group text-left w-full rounded-md border px-2 py-1 flex items-center gap-2 transition-color",
+          active && "border-white"
         )}
       >
         {Icon && <Icon className="h-4 w-4" />}

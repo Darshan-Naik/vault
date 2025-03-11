@@ -43,7 +43,7 @@ const ValueCard = ({
         <div className="flex">
           <p
             className={cn(
-              "text-sm w-fit p-2 border rounded-md bg-white pr-5 min-w-80",
+              "text-sm w-fit p-2 border rounded-md bg-background pr-5 min-w-80",
               className
             )}
             contentEditable={
@@ -86,7 +86,7 @@ const ValueCard = ({
           className={cn(
             "text-gray-400 text-xs italic",
             isEditable &&
-              "text-sm w-fit p-2 border rounded-md bg-white pr-5 min-w-80 text-black"
+              "text-sm w-fit p-2 border rounded-md bg-background pr-5 min-w-80 text-white"
           )}
           contentEditable={isEditable}
           suppressContentEditableWarning={true}

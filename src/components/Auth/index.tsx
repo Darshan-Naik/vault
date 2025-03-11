@@ -27,7 +27,7 @@ function Auth() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen">
+    <div className="flex justify-center items-center h-screen bg-background">
       <Card className="w-[350px]">
         <CardHeader>
           <CardTitle className="text-center">Vault</CardTitle>

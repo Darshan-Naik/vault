@@ -27,12 +27,12 @@ const Main = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden w-screen">
+    <div className="h-screen flex flex-col overflow-hidden w-screen bg-background">
       <Header />
       <div className="flex-1 flex overflow-hidden">
         <div
           className={cn(
-            "flex flex-col w-full bg-white p-4 gap-3 sm:w-80 overflow-hidden",
+            "flex flex-col w-full  p-4 gap-3 sm:w-80 overflow-hidden",
             selectedVault && "sm:flex hidden"
           )}
         >

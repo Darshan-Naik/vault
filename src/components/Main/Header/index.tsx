@@ -18,7 +18,7 @@ const Header = () => {
   };
 
   return (
-    <div className="flex justify-between items-center py-2 px-4 border-b sticky top-0 bg-white shadow-md">
+    <div className="flex justify-between items-center py-2 px-4 border-b sticky top-0 bg-background shadow-md">
       <div className="text-xl font-bold flex gap-2 items-center">
         <Vault className="h-6 w-6" />
         <p>Vault</p>
