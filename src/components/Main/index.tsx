@@ -32,7 +32,7 @@ const Main = () => {
       <div className="flex-1 flex overflow-hidden">
         <div
           className={cn(
-            "flex flex-col w-full  p-4 gap-3 sm:w-80 overflow-hidden",
+            "flex flex-col w-full  p-4 gap-3 sm:w-80 overflow-hidden sm:border-r",
             selectedVault && "sm:flex hidden"
           )}
         >

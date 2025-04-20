@@ -16,7 +16,7 @@ const VaultListItem = ({ vault, onClick, active }: VaultListItemProps) => {
       <button
         onClick={() => onClick(vault)}
         className={cn(
-          "group text-left w-full rounded-md border px-2 py-1 flex items-center gap-2 transition-color",
+          "group text-left w-full rounded-md border px-2 py-1 flex items-center gap-2 transition-color shadow-sm",
           active && "border-white"
         )}
       >
