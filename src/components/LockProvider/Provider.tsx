@@ -8,7 +8,9 @@ import {
   savePinHash,
   updatePinHash,
   verifyPin,
+  deletePinHash,
 } from "@/lib/lock-utils";
+import { signOut } from "firebase/auth";
 
 export function LockProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -99,6 +101,24 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     [pinHash]
   );
 
+  const resetLockKey = useCallback(async () => {
+    if (!user?.uid) {
+      throw new Error("User must be authenticated to reset PIN");
+    }
+
+    try {
+      // Delete PIN hash from Firestore
+      await deletePinHash(user.uid);
+      setPinHash(null);
+      setIsLocked(false);
+      // Sign out the user
+      await signOut(auth);
+    } catch (error) {
+      console.error("Error resetting lock key:", error);
+      throw error;
+    }
+  }, [user?.uid]);
+
   // Clear lock state when user logs out
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -135,6 +155,7 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     hasLockKey: hasLockKey(),
     setLockKey,
     updateLockKey,
+    resetLockKey,
   };
 
   return (

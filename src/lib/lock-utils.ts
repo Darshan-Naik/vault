@@ -1,5 +1,5 @@
 import { db } from "@/firebase";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, deleteField } from "firebase/firestore";
 import CryptoJS from "crypto-js";
 
 /**
@@ -103,5 +103,18 @@ export const verifyPin = (pin: string, storedHash: string): boolean => {
 
   const inputHash = hashPin(pin);
   return inputHash === storedHash;
+};
+
+/**
+ * Delete PIN hash from Firestore for a user
+ */
+export const deletePinHash = async (userId: string): Promise<void> => {
+  try {
+    const userSettingsRef = getUserSettingsRef(userId);
+    await updateDoc(userSettingsRef, { lockPinHash: deleteField() });
+  } catch (error) {
+    console.error("Error deleting PIN hash:", error);
+    throw new Error("Failed to delete PIN");
+  }
 };
 
