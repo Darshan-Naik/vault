@@ -12,7 +12,8 @@ import {
 
 export function LockProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const [isLocked, setIsLocked] = useState(false);
+  // Start locked by default to prevent flash of unlocked content while PIN hash loads
+  const [isLocked, setIsLocked] = useState(true);
   const [pinHash, setPinHash] = useState<string | null>(null);
 
   // Load PIN hash from Firestore when user is available
@@ -27,8 +28,8 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
       try {
         const hash = await loadPinHash(user.uid);
         setPinHash(hash);
-        // Always start unlocked on page load
-        setIsLocked(false);
+        // If PIN hash exists, start locked; otherwise start unlocked
+        setIsLocked(!!hash);
       } catch (error) {
         console.error("Error loading PIN hash:", error);
         setPinHash(null);

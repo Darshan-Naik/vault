@@ -9,10 +9,6 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["logo.svg"],
-      devOptions: {
-        enabled: true,
-        type: "module",
-      },
       manifest: {
         name: "Vault - Password Manager",
         short_name: "Vault",
