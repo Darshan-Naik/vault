@@ -59,8 +59,8 @@ export function PinInput({
       const newPin = value.split("");
       newPin[index] = "";
       onChange(newPin.join(""));
-      if (index > 0 && inputRefs.current[index - 1]) {
-        inputRefs.current[index - 1].focus();
+      if (index > 0) {
+        inputRefs.current[index - 1]?.focus();
       }
       return;
     }
@@ -71,8 +71,8 @@ export function PinInput({
     onChange(newPin.join(""));
 
     // Move to next input
-    if (index < length - 1 && inputRefs.current[index + 1]) {
-      inputRefs.current[index + 1].focus();
+    if (index < length - 1) {
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
