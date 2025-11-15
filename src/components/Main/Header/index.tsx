@@ -11,7 +11,6 @@ import {
 import { auth } from "@/firebase";
 import { Vault } from "lucide-react";
 import LockSettingsDialog, { ButtonLabel } from "@/components/LockSettings/Dialog";
-import PWAInstallButton from "@/components/PWAInstallButton";
 
 const Header = () => {
   const { user } = useAuth();
@@ -49,9 +48,6 @@ const Header = () => {
               <div className="flex flex-col gap-2">
                 <p className="font-semibold">{user?.displayName}</p>
                 <p className="text-sm text-gray-500">{user?.email}</p>
-                <div className="pt-2 w-full">
-                  <PWAInstallButton />
-                </div>
                 <div className="pt-2 w-full">
                   <Button
                     variant="ghost"
