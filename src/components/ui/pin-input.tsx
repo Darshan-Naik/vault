@@ -103,7 +103,11 @@ export function PinInput({
           onKeyDown={(e) => handleKeyDown(index, e)}
           onFocus={() => handleFocus(index)}
           disabled={disabled}
-          className="w-12 h-12 text-center text-lg font-semibold"
+          className="w-12 h-12 text-center text-lg font-semibold tracking-widest [&::-webkit-text-security:disc]"
+          style={{
+            WebkitTextSecurity: "disc",
+            textSecurity: "disc",
+          } as React.CSSProperties}
         />
       ))}
     </div>

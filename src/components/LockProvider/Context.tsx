@@ -5,14 +5,14 @@ export const LockContext = createContext<{
   unlock: (key: string) => boolean;
   lock: () => void;
   hasLockKey: boolean;
-  setLockKey: (key: string) => void;
-  updateLockKey: (oldKey: string, newKey: string) => boolean;
+  setLockKey: (key: string) => Promise<void>;
+  updateLockKey: (oldKey: string, newKey: string) => Promise<boolean>;
 }>({
   isLocked: false,
   unlock: () => false,
   lock: () => {},
   hasLockKey: false,
-  setLockKey: () => {},
-  updateLockKey: () => false,
+  setLockKey: async () => {},
+  updateLockKey: async () => false,
 });
 

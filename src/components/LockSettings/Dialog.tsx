@@ -53,7 +53,7 @@ export default function LockSettingsDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const handleSetPin = () => {
+  const handleSetPin = async () => {
     setError("");
 
     if (newPin.length !== 4) {
@@ -66,13 +66,17 @@ export default function LockSettingsDialog({
       return;
     }
 
-    setLockKey(newPin);
-    toast.success("PIN set successfully");
-    onOpenChange(false);
-    resetForm();
+    try {
+      await setLockKey(newPin);
+      toast.success("PIN set successfully");
+      onOpenChange(false);
+      resetForm();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to set PIN");
+    }
   };
 
-  const handleUpdatePin = () => {
+  const handleUpdatePin = async () => {
     setError("");
 
     if (currentPin.length !== 4) {
@@ -90,16 +94,20 @@ export default function LockSettingsDialog({
       return;
     }
 
-    const success = updateLockKey(currentPin, newPin);
-    if (!success) {
-      setError("Current PIN is incorrect");
-      setCurrentPin("");
-      return;
-    }
+    try {
+      const success = await updateLockKey(currentPin, newPin);
+      if (!success) {
+        setError("Current PIN is incorrect");
+        setCurrentPin("");
+        return;
+      }
 
-    toast.success("PIN updated successfully");
-    onOpenChange(false);
-    resetForm();
+      toast.success("PIN updated successfully");
+      onOpenChange(false);
+      resetForm();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update PIN");
+    }
   };
 
   const handleNewPinComplete = () => {

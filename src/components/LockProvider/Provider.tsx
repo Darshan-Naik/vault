@@ -1,100 +1,110 @@
 import { useEffect, useState, useCallback } from "react";
 import { LockContext } from "./Context";
-import CryptoJS from "crypto-js";
 import { auth } from "@/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-
-const LOCK_KEY_STORAGE = "vault_lock_key_hash";
-const LOCK_STATE_STORAGE = "vault_is_locked";
+import { useAuth } from "../AuthProvider";
+import {
+  loadPinHash,
+  savePinHash,
+  updatePinHash,
+  verifyPin,
+} from "@/lib/lock-utils";
 
 export function LockProvider({ children }: { children: React.ReactNode }) {
-  const [isLocked, setIsLocked] = useState(() => {
-    // Check if app was locked when it closed
-    const wasLocked = localStorage.getItem(LOCK_STATE_STORAGE) === "true";
-    return wasLocked;
-  });
+  const { user } = useAuth();
+  const [isLocked, setIsLocked] = useState(false);
+  const [pinHash, setPinHash] = useState<string | null>(null);
+
+  // Load PIN hash from Firestore when user is available
+  useEffect(() => {
+    const loadUserPinHash = async () => {
+      if (!user?.uid) {
+        setPinHash(null);
+        setIsLocked(false);
+        return;
+      }
+
+      try {
+        const hash = await loadPinHash(user.uid);
+        setPinHash(hash);
+        // Always start unlocked on page load
+        setIsLocked(false);
+      } catch (error) {
+        console.error("Error loading PIN hash:", error);
+        setPinHash(null);
+        setIsLocked(false);
+      }
+    };
+
+    loadUserPinHash();
+  }, [user?.uid]);
 
   const hasLockKey = useCallback(() => {
-    return !!localStorage.getItem(LOCK_KEY_STORAGE);
-  }, []);
-
-  const hashKey = useCallback((key: string): string => {
-    return CryptoJS.SHA256(key).toString();
-  }, []);
+    return !!pinHash;
+  }, [pinHash]);
 
   const lock = useCallback(() => {
     setIsLocked(true);
-    localStorage.setItem(LOCK_STATE_STORAGE, "true");
   }, []);
 
   const setLockKey = useCallback(
-    (key: string) => {
-      // Validate PIN is exactly 4 digits
-      if (!/^\d{4}$/.test(key)) {
-        throw new Error("PIN must be exactly 4 digits");
+    async (key: string) => {
+      if (!user?.uid) {
+        throw new Error("User must be authenticated to set PIN");
       }
-      const hash = hashKey(key);
-      localStorage.setItem(LOCK_KEY_STORAGE, hash);
-      // After setting lock key, lock the app
-      lock();
+
+      try {
+        const hash = await savePinHash(user.uid, key);
+        setPinHash(hash);
+        // After setting lock key, lock the app
+        lock();
+      } catch (error) {
+        throw error;
+      }
     },
-    [hashKey, lock]
+    [lock, user?.uid]
   );
 
   const updateLockKey = useCallback(
-    (oldKey: string, newKey: string): boolean => {
-      // Validate both PINs are exactly 4 digits
-      if (!/^\d{4}$/.test(oldKey) || !/^\d{4}$/.test(newKey)) {
+    async (oldKey: string, newKey: string): Promise<boolean> => {
+      if (!user?.uid || !pinHash) {
         return false;
       }
 
-      const storedHash = localStorage.getItem(LOCK_KEY_STORAGE);
-      if (!storedHash) {
+      try {
+        const newHash = await updatePinHash(user.uid, oldKey, newKey, pinHash);
+        setPinHash(newHash);
+        return true;
+      } catch (error) {
         return false;
       }
-
-      const oldKeyHash = hashKey(oldKey);
-      if (oldKeyHash !== storedHash) {
-        return false;
-      }
-
-      const newKeyHash = hashKey(newKey);
-      localStorage.setItem(LOCK_KEY_STORAGE, newKeyHash);
-      return true;
     },
-    [hashKey]
+    [pinHash, user?.uid]
   );
 
   const unlock = useCallback(
     (key: string): boolean => {
-      // Validate PIN is exactly 4 digits
-      if (!/^\d{4}$/.test(key)) {
+      if (!pinHash) {
         return false;
       }
 
-      const storedHash = localStorage.getItem(LOCK_KEY_STORAGE);
-      if (!storedHash) {
-        return false;
-      }
-
-      const inputHash = hashKey(key);
-      if (inputHash === storedHash) {
+      const isValid = verifyPin(key, pinHash);
+      if (isValid) {
         setIsLocked(false);
-        localStorage.setItem(LOCK_STATE_STORAGE, "false");
         return true;
       }
       return false;
     },
-    [hashKey]
+    [pinHash]
   );
 
   // Clear lock state when user logs out
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
-        // User logged out, clear lock state
+        // User logged out, clear lock state and PIN hash
         setIsLocked(false);
-        localStorage.setItem(LOCK_STATE_STORAGE, "false");
+        setPinHash(null);
       }
     });
 
@@ -110,30 +120,12 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
-    const handleBeforeUnload = () => {
-      if (hasLockKey()) {
-        // App is closing, mark as locked
-        localStorage.setItem(LOCK_STATE_STORAGE, "true");
-      }
-    };
-
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    // Lock on initial load if lock key exists
-    if (hasLockKey() && !isLocked) {
-      // Check if we should lock on page load
-      const shouldLock = localStorage.getItem(LOCK_STATE_STORAGE) === "true";
-      if (shouldLock) {
-        setIsLocked(true);
-      }
-    }
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [hasLockKey, lock, isLocked]);
+  }, [hasLockKey, lock]);
 
   const value = {
     isLocked,
