@@ -17,7 +17,7 @@ const VaultList = ({
   selectedVault,
 }: VaultListProps) => {
   return (
-    <div className="overflow-y-auto flex-1 px-3 pb-4 pt-1">
+    <div className="px-3 pb-4">
       {isLoading ? (
         <VaultsSkeleton />
       ) : vaults && vaults.length > 0 ? (
