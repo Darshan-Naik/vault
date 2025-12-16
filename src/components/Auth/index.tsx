@@ -3,7 +3,7 @@ import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { auth } from "@/firebase";
-import { Shield, Lock, Fingerprint, KeyRound } from "lucide-react";
+import { Shield, Lock, KeyRound } from "lucide-react";
 
 function Auth() {
   const [error, setError] = useState<string>("");

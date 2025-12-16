@@ -87,7 +87,7 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
           </div>
         </div>
       </DialogHeader>
-      
+
       <div className="py-4 space-y-4">
         {/* Type selector */}
         <div className="space-y-2">
@@ -103,11 +103,13 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
             </SelectTrigger>
             <SelectContent>
               {vaultTypes.map((item) => {
-                const Icon = iconMap[item.value];
+                const Icon = iconMap[item.value as keyof typeof iconMap];
                 return (
                   <SelectItem key={item.value} value={item.value}>
                     <div className="flex items-center gap-2">
-                      {Icon && <Icon className="w-4 h-4 text-muted-foreground" />}
+                      {Icon && (
+                        <Icon className="w-4 h-4 text-muted-foreground" />
+                      )}
                       <span>{item.label}</span>
                     </div>
                   </SelectItem>
@@ -116,7 +118,7 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
             </SelectContent>
           </Select>
         </div>
-        
+
         {/* Title */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -130,7 +132,7 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
             maxLength={200}
           />
         </div>
-        
+
         {/* Type-specific fields */}
         <div className="space-y-4">
           {data?.type === "CREDENTIAL" && (
@@ -143,7 +145,7 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
             <Card data={data} handleChange={handleChange} />
           )}
         </div>
-        
+
         {/* Notes */}
         <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -158,13 +160,9 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
           />
         </div>
       </div>
-      
+
       <DialogFooter className="gap-2 sm:gap-0">
-        <Button
-          variant="outline"
-          onClick={handleClose}
-          className="sm:w-24"
-        >
+        <Button variant="outline" onClick={handleClose} className="sm:w-24">
           Cancel
         </Button>
         <Button
