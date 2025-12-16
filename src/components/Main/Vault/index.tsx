@@ -3,7 +3,7 @@ import Credential from "./Credential";
 import { iconMap } from "@/lib/configs";
 import Bank from "./Bank";
 import Card from "./Card";
-import { ChevronLeft, Edit, Save, X } from "lucide-react";
+import { ChevronLeft, Edit, Save, X, Shield } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -14,6 +14,7 @@ import { useUpdateVault } from "@/lib/query";
 import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
 import DeleteVault from "./DeleteVault";
+import { cn } from "@/lib/utils";
 
 type VaultProps = {
   vault: TVault;
@@ -21,10 +22,11 @@ type VaultProps = {
   isEdit: boolean;
   setIsEdit: (flag: boolean) => void;
 };
+
 const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
   const [vaultData, setVaultData] = useState<TVault>(vault);
   const Icon = iconMap[vault.type];
-  const { mutateAsync: updateVault } = useUpdateVault();
+  const { mutateAsync: updateVault, isPending } = useUpdateVault();
 
   const { user } = useAuth();
 
@@ -55,95 +57,137 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
     }
   };
 
+  // Get type label
+  const typeLabels: Record<string, string> = {
+    CREDENTIAL: "Login Credential",
+    BANK: "Bank Account",
+    CARD: "Payment Card",
+  };
+
   return (
-    <div
-      className="flex-1 sm:px-8 px-4 py-2"
-      key={isEdit ? "vault-edit" : "vault"}
-    >
-      <div className="border-b w-full mb-4 p-2 items-center flex justify-between">
-        <div className="flex items-center gap-2">
-          <ChevronLeft
-            className="h-5 w-5 sm:hidden"
-            onClick={() => handleVaultSelect(undefined)}
-          />
-          <p
-            className="font-medium text-xl"
-            contentEditable={isEdit}
-            onInput={(e) => {
-              handleChange("title", e.currentTarget.textContent || "");
-            }}
-            suppressContentEditableWarning={true}
-          >
-            {vault.title}
-          </p>
-        </div>
-        <div className="flex gap-4">
-          {isEdit ? (
-            <>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={() => {
-                      setIsEdit(false);
-                      setVaultData(vault);
-                    }}
-                    disabled={!vaultData.title.trim()}
-                    className="disabled:opacity-20"
-                  >
-                    <X className="w-5 h-5 text-secondary-foreground opacity-70 hover:opacity-100 transition-opacity" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-md">Cancel</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    onClick={handleSave}
-                    disabled={!vaultData.title.trim()}
-                    className="disabled:opacity-20"
-                  >
-                    <Save className="w-5 h-5 text-secondary-foreground opacity-70 hover:opacity-100 transition-opacity" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-md">Save</p>
-                </TooltipContent>
-              </Tooltip>
-            </>
-          ) : (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button onClick={() => setIsEdit(true)}>
-                  <Edit className="w-5 h-5 text-secondary-foreground opacity-70 hover:opacity-100 transition-opacity" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-md">Edit</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          {!isEdit && (
-            <DeleteVault vault={vault} handleVaultSelect={handleVaultSelect} />
-          )}
+    <div className="flex flex-col h-full overflow-hidden" key={isEdit ? "vault-edit" : "vault"}>
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 md:p-6 border-b border-border/50 bg-card/30 backdrop-blur-sm">
+        <div className="flex items-center justify-between gap-4">
+          {/* Back button and title */}
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              onClick={() => handleVaultSelect(undefined)}
+              className="md:hidden flex-shrink-0 w-9 h-9 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            
+            <div className={cn(
+              "flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center",
+              "bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20"
+            )}>
+              {Icon && <Icon className="h-5 w-5 md:h-6 md:w-6 text-primary" />}
+            </div>
+            
+            <div className="min-w-0">
+              {isEdit ? (
+                <input
+                  type="text"
+                  value={vaultData.title}
+                  onChange={(e) => handleChange("title", e.target.value)}
+                  className="text-lg md:text-xl font-semibold bg-transparent border-b-2 border-primary/50 focus:border-primary outline-none w-full"
+                  placeholder="Vault title"
+                />
+              ) : (
+                <h1 className="text-lg md:text-xl font-semibold truncate">
+                  {vault.title}
+                </h1>
+              )}
+              <p className="text-xs text-muted-foreground">
+                {typeLabels[vault.type] || vault.type}
+              </p>
+            </div>
+          </div>
+          
+          {/* Action buttons */}
+          <div className="flex items-center gap-2">
+            {isEdit ? (
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => {
+                        setIsEdit(false);
+                        setVaultData(vault);
+                      }}
+                      className="w-9 h-9 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
+                    >
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Cancel</TooltipContent>
+                </Tooltip>
+                
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={handleSave}
+                      disabled={!vaultData.title.trim() || isPending}
+                      className={cn(
+                        "w-9 h-9 rounded-lg flex items-center justify-center transition-all",
+                        "bg-primary/20 hover:bg-primary/30 text-primary",
+                        "disabled:opacity-50 disabled:cursor-not-allowed"
+                      )}
+                    >
+                      {isPending ? (
+                        <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4" />
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Save changes</TooltipContent>
+                </Tooltip>
+              </>
+            ) : (
+              <>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setIsEdit(true)}
+                      className="w-9 h-9 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
+                    >
+                      <Edit className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Edit vault</TooltipContent>
+                </Tooltip>
+                
+                <DeleteVault vault={vault} handleVaultSelect={handleVaultSelect} />
+              </>
+            )}
+          </div>
         </div>
       </div>
-      <div className="flex justify-between flex-wrap">
-        {vault.type === "CREDENTIAL" && (
-          <Credential
-            vault={vault}
-            isEdit={isEdit}
-            handleChange={handleChange}
-          />
-        )}
-        {vault.type === "BANK" && (
-          <Bank vault={vault} isEdit={isEdit} handleChange={handleChange} />
-        )}
-        {vault.type === "CARD" && (
-          <Card vault={vault} isEdit={isEdit} handleChange={handleChange} />
-        )}
-        <Icon className="p-20 w-80 h-80 opacity-20 sm:block hidden" />
+      
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        <div className="max-w-2xl">
+          {vault.type === "CREDENTIAL" && (
+            <Credential
+              vault={vault}
+              isEdit={isEdit}
+              handleChange={handleChange}
+            />
+          )}
+          {vault.type === "BANK" && (
+            <Bank vault={vault} isEdit={isEdit} handleChange={handleChange} />
+          )}
+          {vault.type === "CARD" && (
+            <Card vault={vault} isEdit={isEdit} handleChange={handleChange} />
+          )}
+        </div>
+        
+        {/* Decorative icon - desktop only */}
+        <div className="hidden lg:block fixed bottom-8 right-8 opacity-5 pointer-events-none">
+          <Shield className="w-64 h-64" />
+        </div>
       </div>
     </div>
   );

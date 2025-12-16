@@ -9,42 +9,48 @@ type BankProps = {
 
 const Bank = ({ vault, isEdit, handleChange }: BankProps) => {
   return (
-    <div className="space-y-4 flex-1">
+    <div className="space-y-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ValueCard
+          label="Account Number"
+          value={vault.accountNumber}
+          id="accountNumber"
+          isEditable={isEdit}
+          handleChange={handleChange}
+        />
+        <ValueCard
+          label="IFSC Code"
+          value={vault.ifsc}
+          id="ifsc"
+          isEditable={isEdit}
+          handleChange={handleChange}
+        />
+      </div>
+      
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ValueCard
+          label="Password"
+          value={vault.password}
+          id="password"
+          isEditable={isEdit}
+          handleChange={handleChange}
+        />
+        <ValueCard
+          label="Master Password"
+          value={vault.masterPassword}
+          id="masterPassword"
+          isEditable={isEdit}
+          handleChange={handleChange}
+        />
+      </div>
+      
       <ValueCard
-        label="Account number"
-        value={vault.accountNumber}
-        id="accountNumber"
-        isEditable={isEdit}
-        handleChange={handleChange}
-      />
-      <ValueCard
-        label="Password"
-        value={vault.password}
-        id="password"
-        isEditable={isEdit}
-        handleChange={handleChange}
-      />
-      <ValueCard
-        label="Master Password"
-        value={vault.masterPassword}
-        id="masterPassword"
-        isEditable={isEdit}
-        handleChange={handleChange}
-      />
-      <ValueCard
-        label="ifsc"
-        value={vault.ifsc}
-        id="ifsc"
-        isEditable={isEdit}
-        handleChange={handleChange}
-      />
-      <ValueCard
-        label="Note"
+        label="Notes"
         value={vault.note}
         id="note"
-        className="min-h-40"
         isEditable={isEdit}
         handleChange={handleChange}
+        multiline
       />
     </div>
   );

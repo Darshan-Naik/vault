@@ -14,14 +14,14 @@ const AddNew = () => {
         <Button
           variant="default"
           size="default"
-          className="justify-start bg-white text-black"
+          className="w-full gap-2"
           onClick={() => setIsOpen(true)}
         >
-          <Plus className="h-4 w-4 mr-2" />
-          Add new
+          <Plus className="h-4 w-4" />
+          <span>Add New Vault</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <AddNewContent handleClose={() => setIsOpen(false)} />
       </DialogContent>
     </Dialog>

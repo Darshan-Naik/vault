@@ -1,5 +1,4 @@
 import { useRef, useEffect } from "react";
-import { Input } from "./input";
 import { cn } from "@/lib/utils";
 
 interface PinInputProps {
@@ -36,17 +35,14 @@ export function PinInput({
   }, [value, length, onComplete]);
 
   const handleChange = (index: number, newValue: string) => {
-    // Only allow digits
     const digit = newValue.replace(/\D/g, "");
     if (digit.length > 1) {
-      // Handle paste
       const pastedDigits = digit.slice(0, length);
-      let newPin = value.split("");
+      const newPin = value.split("");
       for (let i = 0; i < pastedDigits.length && index + i < length; i++) {
         newPin[index + i] = pastedDigits[i];
       }
       onChange(newPin.join(""));
-      // Focus the next empty input or the last one
       const nextIndex = Math.min(index + pastedDigits.length, length - 1);
       if (inputRefs.current[nextIndex]) {
         inputRefs.current[nextIndex].focus();
@@ -55,7 +51,6 @@ export function PinInput({
     }
 
     if (digit.length === 0) {
-      // Backspace - clear current and move to previous
       const newPin = value.split("");
       newPin[index] = "";
       onChange(newPin.join(""));
@@ -65,20 +60,20 @@ export function PinInput({
       return;
     }
 
-    // Set the digit
     const newPin = value.split("");
     newPin[index] = digit;
     onChange(newPin.join(""));
 
-    // Move to next input
     if (index < length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (e.key === "Backspace" && !value[index] && index > 0) {
-      // If current is empty and backspace, go to previous
       inputRefs.current[index - 1]?.focus();
     }
   };
@@ -88,29 +83,57 @@ export function PinInput({
   };
 
   return (
-    <div className={cn("flex gap-2 justify-center", className)}>
-      {Array.from({ length }).map((_, index) => (
-        <Input
-          key={index}
-          ref={(el) => {
-            inputRefs.current[index] = el;
-          }}
-          type="text"
-          inputMode="numeric"
-          maxLength={1}
-          value={value[index] || ""}
-          onChange={(e) => handleChange(index, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(index, e)}
-          onFocus={() => handleFocus(index)}
-          disabled={disabled}
-          className="w-12 h-12 text-center text-lg font-semibold tracking-widest [&::-webkit-text-security:disc]"
-          style={{
-            WebkitTextSecurity: "disc",
-            textSecurity: "disc",
-          } as React.CSSProperties}
-        />
-      ))}
+    <div className={cn("flex gap-3 justify-center", className)}>
+      {Array.from({ length }).map((_, index) => {
+        const isFilled = !!value[index];
+        const isFocused = document.activeElement === inputRefs.current[index];
+
+        return (
+          <div key={index} className="relative">
+            {/* Glow effect */}
+            {isFocused && (
+              <div className="absolute inset-0 bg-primary/30 rounded-xl blur-md" />
+            )}
+
+            <input
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
+              type="text"
+              inputMode="numeric"
+              maxLength={1}
+              value={value[index] || ""}
+              onChange={(e) => handleChange(index, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(index, e)}
+              onFocus={() => handleFocus(index)}
+              disabled={disabled}
+              className={cn(
+                "relative w-14 h-16 text-center text-2xl font-semibold rounded-xl",
+                "bg-secondary/50 border-2 border-border/50",
+                "focus:outline-none focus:border-primary focus:bg-secondary",
+                "transition-all duration-200",
+                "placeholder:text-muted-foreground/30",
+                isFilled && "border-primary/50 bg-primary/10",
+                disabled && "opacity-50 cursor-not-allowed"
+              )}
+              style={
+                {
+                  WebkitTextSecurity: "disc",
+                  textSecurity: "disc",
+                } as React.CSSProperties
+              }
+            />
+
+            {/* Bottom indicator dot */}
+            <div
+              className={cn(
+                "absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full transition-all duration-200",
+                isFilled ? "bg-primary scale-100" : "bg-border scale-75"
+              )}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }
-

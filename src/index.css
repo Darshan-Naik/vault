@@ -1,40 +1,254 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @layer base {
   :root {
-    --radius: 0.5rem;
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --radius: 0.75rem;
+
+    /* Dark theme with emerald accent - vault security feel */
+    --background: 220 20% 6%;
+    --foreground: 210 20% 98%;
+
+    --card: 220 18% 10%;
+    --card-foreground: 210 20% 98%;
+
+    --popover: 220 18% 8%;
+    --popover-foreground: 210 20% 98%;
+
+    /* Emerald accent */
+    --primary: 160 84% 39%;
+    --primary-foreground: 210 20% 98%;
+
+    --secondary: 220 14% 16%;
+    --secondary-foreground: 210 20% 98%;
+
+    --muted: 220 14% 16%;
+    --muted-foreground: 215 16% 57%;
+
+    --accent: 160 60% 45%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 220 14% 18%;
+    --input: 220 14% 14%;
+    --ring: 160 84% 39%;
+
+    --chart-1: 160 84% 39%;
+    --chart-2: 180 70% 45%;
+    --chart-3: 140 70% 50%;
+    --chart-4: 200 80% 55%;
+    --chart-5: 280 75% 55%;
+
+    /* Custom vault colors */
+    --vault-glow: 160 84% 39%;
+    --vault-surface: 220 18% 12%;
+    --vault-border: 220 14% 22%;
   }
 }
+
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-family: "Outfit", system-ui, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+}
+
+@layer components {
+  /* Glassmorphism effect */
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+
+  .glass-hover {
+    @apply hover:bg-white/10 transition-all duration-300;
+  }
+
+  /* Vault card glow effect */
+  .vault-glow {
+    box-shadow: 0 0 60px -12px hsl(var(--primary) / 0.2);
+  }
+
+  .vault-glow-sm {
+    box-shadow: 0 0 30px -8px hsl(var(--primary) / 0.15);
+  }
+
+  /* Gradient backgrounds */
+  .gradient-mesh {
+    background: radial-gradient(
+        at 0% 0%,
+        hsl(160 84% 39% / 0.08) 0px,
+        transparent 50%
+      ),
+      radial-gradient(at 100% 0%, hsl(200 80% 50% / 0.06) 0px, transparent 50%),
+      radial-gradient(
+        at 100% 100%,
+        hsl(280 70% 50% / 0.04) 0px,
+        transparent 50%
+      ),
+      radial-gradient(at 0% 100%, hsl(160 60% 45% / 0.06) 0px, transparent 50%);
+  }
+
+  .gradient-radial {
+    background: radial-gradient(
+      ellipse at center,
+      hsl(var(--primary) / 0.08) 0%,
+      transparent 70%
+    );
+  }
+
+  /* Animated gradient border */
+  .animated-border {
+    position: relative;
+    background: linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
+      linear-gradient(
+          135deg,
+          hsl(var(--primary)),
+          hsl(200 80% 50%),
+          hsl(var(--primary))
+        )
+        border-box;
+    border: 1px solid transparent;
+  }
+
+  /* Shimmer effect for loading */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  /* Fade in animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+
+  /* Slide in from left */
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-slide-in-left {
+    animation: slideInLeft 0.3s ease-out forwards;
+  }
+
+  /* Scale in */
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+  }
+
+  /* Pulse glow */
+  @keyframes pulseGlow {
+    0%,
+    100% {
+      box-shadow: 0 0 20px -5px hsl(var(--primary) / 0.3);
+    }
+    50% {
+      box-shadow: 0 0 30px -5px hsl(var(--primary) / 0.5);
+    }
+  }
+
+  .pulse-glow {
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+
+  /* Float animation for icons */
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  /* Focus visible styles */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 bg-clip-text text-transparent;
   }
 }

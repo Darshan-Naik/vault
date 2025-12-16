@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLock } from "../LockProvider";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,8 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PinInput } from "@/components/ui/pin-input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Lock, Settings } from "lucide-react";
+import { Lock, Shield, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 interface LockSettingsDialogProps {
@@ -20,12 +19,7 @@ interface LockSettingsDialogProps {
 
 export function ButtonLabel() {
   const { hasLockKey } = useLock();
-  return (
-    <>
-      <Settings className="h-4 w-4 mr-2" />
-      {hasLockKey ? "Update PIN" : "Set PIN"}
-    </>
-  );
+  return <>{hasLockKey ? "Update PIN" : "Set PIN"}</>;
 }
 
 export default function LockSettingsDialog({
@@ -38,20 +32,19 @@ export default function LockSettingsDialog({
   const [confirmPin, setConfirmPin] = useState("");
   const [error, setError] = useState("");
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setCurrentPin("");
     setNewPin("");
     setConfirmPin("");
     setError("");
-  };
+  }, []);
 
   // Reset form when dialog closes
   useEffect(() => {
     if (!open) {
       resetForm();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, resetForm]);
 
   const handleSetPin = async () => {
     setError("");
@@ -111,7 +104,6 @@ export default function LockSettingsDialog({
   };
 
   const handleNewPinComplete = () => {
-    // Auto-submit if updating and current pin is already entered
     if (hasLockKey && currentPin.length === 4 && confirmPin.length === 4) {
       handleUpdatePin();
     }
@@ -129,23 +121,29 @@ export default function LockSettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            {hasLockKey ? "Update PIN" : "Set PIN"}
-          </DialogTitle>
-          <DialogDescription>
-            {hasLockKey
-              ? "Enter your current PIN and set a new one"
-              : "Set a 4-digit PIN to secure your app when it goes to background"}
-          </DialogDescription>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
+              <Lock className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <DialogTitle className="text-xl">
+                {hasLockKey ? "Update PIN" : "Set Lock PIN"}
+              </DialogTitle>
+              <DialogDescription className="text-sm">
+                {hasLockKey
+                  ? "Enter your current PIN and set a new one"
+                  : "Secure your vault with a 4-digit PIN"}
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-6 py-4">
           {hasLockKey && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-center block">
+            <div className="space-y-3">
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-center block">
                 Current PIN
               </label>
               <PinInput
@@ -159,9 +157,9 @@ export default function LockSettingsDialog({
             </div>
           )}
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-center block">
-              {hasLockKey ? "New PIN" : "PIN"}
+          <div className="space-y-3">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-center block">
+              {hasLockKey ? "New PIN" : "Enter PIN"}
             </label>
             <PinInput
               value={newPin}
@@ -174,8 +172,8 @@ export default function LockSettingsDialog({
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-center block">
+          <div className="space-y-3">
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-center block">
               Confirm PIN
             </label>
             <PinInput
@@ -189,12 +187,19 @@ export default function LockSettingsDialog({
           </div>
 
           {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div className="flex items-center justify-center gap-2 text-sm text-destructive animate-fade-in">
+              <AlertTriangle className="w-4 h-4" />
+              <span>{error}</span>
+            </div>
           )}
 
-          <div className="flex gap-2">
+          {/* Security note */}
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
+            <Shield className="w-3 h-3" />
+            <span>Your PIN is encrypted and stored securely</span>
+          </div>
+
+          <div className="flex gap-3 pt-2">
             <Button
               type="button"
               variant="outline"
@@ -213,7 +218,7 @@ export default function LockSettingsDialog({
                 (hasLockKey && currentPin.length !== 4)
               }
             >
-              {hasLockKey ? "Update" : "Set"}
+              {hasLockKey ? "Update PIN" : "Set PIN"}
             </Button>
           </div>
         </div>
@@ -221,4 +226,3 @@ export default function LockSettingsDialog({
     </Dialog>
   );
 }
-

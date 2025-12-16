@@ -4,10 +4,15 @@ export default {
     content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
   	extend: {
+  		fontFamily: {
+  			sans: ['Outfit', 'system-ui', 'sans-serif'],
+  		},
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			sm: 'calc(var(--radius) - 4px)',
+  			xl: 'calc(var(--radius) + 4px)',
+  			'2xl': 'calc(var(--radius) + 8px)',
   		},
   		colors: {
   			background: 'hsl(var(--background))',
@@ -49,7 +54,23 @@ export default {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
+  			},
+  			vault: {
+  				glow: 'hsl(var(--vault-glow))',
+  				surface: 'hsl(var(--vault-surface))',
+  				border: 'hsl(var(--vault-border))',
   			}
+  		},
+  		boxShadow: {
+  			'glow': '0 0 40px -10px hsl(var(--primary) / 0.3)',
+  			'glow-lg': '0 0 60px -15px hsl(var(--primary) / 0.4)',
+  			'inner-glow': 'inset 0 1px 0 0 hsl(var(--primary) / 0.1)',
+  		},
+  		animation: {
+  			'fade-in': 'fadeIn 0.4s ease-out forwards',
+  			'slide-in-left': 'slideInLeft 0.3s ease-out forwards',
+  			'scale-in': 'scaleIn 0.2s ease-out forwards',
+  			'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
   		}
   	}
   },

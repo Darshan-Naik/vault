@@ -1,32 +1,32 @@
-import { useAuth } from "@/components/AuthProvider";
+import { useState } from "react";
+import { Trash2, AlertTriangle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { useDeleteVault } from "@/lib/query";
-import { TVault } from "@/lib/types";
-import { Trash } from "lucide-react";
+import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { TVault } from "@/lib/types";
 
 type DeleteVaultProps = {
   vault: TVault;
-  handleVaultSelect: (vault?: TVault) => void;
+  handleVaultSelect: (vault?: TVault, force?: boolean) => void;
 };
 
 const DeleteVault = ({ vault, handleVaultSelect }: DeleteVaultProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-
+  const [open, setOpen] = useState(false);
   const { mutateAsync: deleteVault, isPending } = useDeleteVault();
   const { user } = useAuth();
 
@@ -36,58 +36,68 @@ const DeleteVault = ({ vault, handleVaultSelect }: DeleteVaultProps) => {
         userId: user?.uid as string,
         vaultId: vault.id,
       });
-      handleVaultSelect(undefined);
-      toast.success(`${vault?.title.trim()} deleted successfully`);
+      toast.success(`${vault.title} deleted successfully`);
+      handleVaultSelect(undefined, true);
+      setOpen(false);
     } catch (error) {
       if (error instanceof Error) {
         toast.error(error.message);
       } else {
-        toast.error("An unknown error occurred");
+        toast.error("Failed to delete vault");
       }
     }
   };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button onClick={() => setIsOpen(true)}>
-              <Trash className="w-5 h-5 text-secondary-foreground opacity-70 hover:opacity-100 transition-opacity" />
+    <Dialog open={open} onOpenChange={setOpen}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <button className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center hover:bg-destructive/20 transition-colors text-destructive">
+              <Trash2 className="w-4 h-4" />
             </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p className="text-md">Delete</p>
-          </TooltipContent>
-        </Tooltip>
-      </DialogTrigger>
-      <DialogContent>
+          </DialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Delete vault</TooltipContent>
+      </Tooltip>
+      
+      <DialogContent className="glass border-border/50 sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Delete vault</DialogTitle>
-        </DialogHeader>
-        <div className="py-4">
-          <p className="text-sm">
-            Are you sure you want to delete{" "}
-            <span className="font-medium">{vault.title.trim()}</span>?
-          </p>
-        </div>
-        <DialogFooter>
-          <div className="flex sm:justify-end space-x-2 justify-evenly">
-            <Button
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              className="sm:w-24 w-40"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleDelete}
-              disabled={isPending}
-              className="sm:w-24 w-40"
-              variant="destructive"
-            >
-              {isPending ? "Deleting..." : "Delete"}
-            </Button>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+            </div>
+            <DialogTitle className="text-xl">Delete Vault</DialogTitle>
           </div>
+          <DialogDescription className="text-muted-foreground">
+            Are you sure you want to delete <strong className="text-foreground">{vault.title}</strong>? 
+            This action cannot be undone and all associated data will be permanently removed.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={isPending}
+            className="border-border/50"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={isPending}
+          >
+            {isPending ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-destructive-foreground/30 border-t-destructive-foreground rounded-full animate-spin" />
+                Deleting...
+              </div>
+            ) : (
+              "Delete Vault"
+            )}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
