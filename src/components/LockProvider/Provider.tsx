@@ -12,7 +12,7 @@ import {
 } from "@/lib/lock-utils";
 import {
   isBiometricAvailable as checkBiometricAvailable,
-  loadBiometricCredential,
+  loadBiometricCredentials,
   registerBiometric,
   deleteBiometricCredential,
   authenticateWithBiometric,
@@ -25,11 +25,11 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
   const [isLocked, setIsLocked] = useState(true);
   const [pinHash, setPinHash] = useState<string | null>(null);
 
-  // Biometric state
+  // Biometric state (supports multiple devices)
   const [biometricAvailable, setBiometricAvailable] = useState(false);
-  const [biometricCredentialId, setBiometricCredentialId] = useState<
-    string | null
-  >(null);
+  const [biometricCredentialIds, setBiometricCredentialIds] = useState<
+    string[]
+  >([]);
 
   // Check biometric availability on mount
   useEffect(() => {
@@ -40,29 +40,29 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     checkBiometric();
   }, []);
 
-  // Load PIN hash and biometric credential from Firestore when user is available
+  // Load PIN hash and biometric credentials from Firestore when user is available
   useEffect(() => {
     const loadUserSettings = async () => {
       if (!user?.uid) {
         setPinHash(null);
-        setBiometricCredentialId(null);
+        setBiometricCredentialIds([]);
         setIsLocked(false);
         return;
       }
 
       try {
-        const [hash, credentialId] = await Promise.all([
+        const [hash, credentialIds] = await Promise.all([
           loadPinHash(user.uid),
-          loadBiometricCredential(user.uid),
+          loadBiometricCredentials(user.uid),
         ]);
         setPinHash(hash);
-        setBiometricCredentialId(credentialId);
+        setBiometricCredentialIds(credentialIds);
         // If PIN hash exists, start locked; otherwise start unlocked
         setIsLocked(!!hash);
       } catch (error) {
         console.error("Error loading user settings:", error);
         setPinHash(null);
-        setBiometricCredentialId(null);
+        setBiometricCredentialIds([]);
         setIsLocked(false);
       }
     };
@@ -134,13 +134,13 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      // Delete PIN hash and biometric credential from Firestore
+      // Delete PIN hash and biometric credentials from Firestore
       await deletePinHash(user.uid);
-      if (biometricCredentialId) {
+      if (biometricCredentialIds.length > 0) {
         await deleteBiometricCredential(user.uid);
       }
       setPinHash(null);
-      setBiometricCredentialId(null);
+      setBiometricCredentialIds([]);
       setIsLocked(false);
       // Sign out the user
       await signOut(auth);
@@ -148,9 +148,9 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
       console.error("Error resetting lock key:", error);
       throw error;
     }
-  }, [user?.uid, biometricCredentialId]);
+  }, [user?.uid, biometricCredentialIds.length]);
 
-  // Enable biometric authentication
+  // Enable biometric authentication (registers this device)
   const enableBiometric = useCallback(async (): Promise<boolean> => {
     if (!user?.uid || !user?.email) {
       throw new Error("User must be authenticated to enable biometric");
@@ -165,8 +165,9 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     try {
       const success = await registerBiometric(user.uid, user.email);
       if (success) {
-        const credentialId = await loadBiometricCredential(user.uid);
-        setBiometricCredentialId(credentialId);
+        // Reload all credentials (including the newly added one)
+        const credentialIds = await loadBiometricCredentials(user.uid);
+        setBiometricCredentialIds(credentialIds);
       }
       return success;
     } catch (error) {
@@ -175,7 +176,7 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user?.uid, user?.email, biometricAvailable]);
 
-  // Disable biometric authentication
+  // Disable biometric authentication (removes all devices)
   const disableBiometric = useCallback(async (): Promise<void> => {
     if (!user?.uid) {
       throw new Error("User must be authenticated to disable biometric");
@@ -183,21 +184,21 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
 
     try {
       await deleteBiometricCredential(user.uid);
-      setBiometricCredentialId(null);
+      setBiometricCredentialIds([]);
     } catch (error) {
       console.error("Error disabling biometric:", error);
       throw error;
     }
   }, [user?.uid]);
 
-  // Unlock using biometric
+  // Unlock using biometric (works with any registered device)
   const unlockWithBiometric = useCallback(async (): Promise<boolean> => {
-    if (!biometricCredentialId) {
+    if (biometricCredentialIds.length === 0) {
       return false;
     }
 
     try {
-      const success = await authenticateWithBiometric(biometricCredentialId);
+      const success = await authenticateWithBiometric(biometricCredentialIds);
       if (success) {
         setIsLocked(false);
       }
@@ -206,16 +207,16 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
       console.error("Error unlocking with biometric:", error);
       return false;
     }
-  }, [biometricCredentialId]);
+  }, [biometricCredentialIds]);
 
   // Clear lock state when user logs out
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
-        // User logged out, clear lock state, PIN hash, and biometric credential
+        // User logged out, clear lock state, PIN hash, and biometric credentials
         setIsLocked(false);
         setPinHash(null);
-        setBiometricCredentialId(null);
+        setBiometricCredentialIds([]);
       }
     });
 
@@ -246,9 +247,9 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     setLockKey,
     updateLockKey,
     resetLockKey,
-    // Biometric
+    // Biometric (supports multiple devices)
     isBiometricAvailable: biometricAvailable,
-    isBiometricEnabled: !!biometricCredentialId,
+    isBiometricEnabled: biometricCredentialIds.length > 0,
     enableBiometric,
     disableBiometric,
     unlockWithBiometric,

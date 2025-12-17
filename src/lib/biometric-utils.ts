@@ -60,16 +60,32 @@ const getUserSettingsRef = (userId: string) => {
   return doc(db, "user-settings", userId);
 };
 
-// Store credential ID in Firestore
+// Add credential ID to array in Firestore (supports multiple devices)
 export const saveBiometricCredential = async (
   userId: string,
   credentialId: string
 ): Promise<void> => {
   try {
     const userSettingsRef = getUserSettingsRef(userId);
+    const userSettingsSnap = await getDoc(userSettingsRef);
+
+    let credentialIds: string[] = [];
+
+    if (userSettingsSnap.exists()) {
+      const data = userSettingsSnap.data();
+      if (data.biometricCredentialIds) {
+        credentialIds = data.biometricCredentialIds;
+      }
+    }
+
+    // Add new credential if not already present
+    if (!credentialIds.includes(credentialId)) {
+      credentialIds.push(credentialId);
+    }
+
     await setDoc(
       userSettingsRef,
-      { biometricCredentialId: credentialId },
+      { biometricCredentialIds: credentialIds },
       { merge: true }
     );
   } catch (error) {
@@ -78,33 +94,37 @@ export const saveBiometricCredential = async (
   }
 };
 
-// Load credential ID from Firestore
-export const loadBiometricCredential = async (
+// Load all credential IDs from Firestore (supports multiple devices)
+export const loadBiometricCredentials = async (
   userId: string
-): Promise<string | null> => {
+): Promise<string[]> => {
   try {
     const userSettingsRef = getUserSettingsRef(userId);
     const userSettingsSnap = await getDoc(userSettingsRef);
 
     if (userSettingsSnap.exists()) {
       const data = userSettingsSnap.data();
-      return data.biometricCredentialId || null;
+      if (data.biometricCredentialIds) {
+        return data.biometricCredentialIds;
+      }
     }
 
-    return null;
+    return [];
   } catch (error) {
-    console.error("Error loading biometric credential:", error);
-    return null;
+    console.error("Error loading biometric credentials:", error);
+    return [];
   }
 };
 
-// Delete biometric credential from Firestore
+// Delete all biometric credentials from Firestore
 export const deleteBiometricCredential = async (
   userId: string
 ): Promise<void> => {
   try {
     const userSettingsRef = getUserSettingsRef(userId);
-    await updateDoc(userSettingsRef, { biometricCredentialId: deleteField() });
+    await updateDoc(userSettingsRef, {
+      biometricCredentialIds: deleteField(),
+    });
   } catch (error) {
     console.error("Error deleting biometric credential:", error);
     throw new Error("Failed to delete biometric credential");
@@ -176,23 +196,26 @@ export const registerBiometric = async (
 };
 
 // Authenticate using biometric (Face ID/fingerprint verification)
+// Supports multiple device credentials - will try to match any registered device
 export const authenticateWithBiometric = async (
-  credentialId: string
+  credentialIds: string[]
 ): Promise<boolean> => {
+  if (credentialIds.length === 0) {
+    return false;
+  }
+
   try {
     const challenge = generateChallenge();
 
-    // Create authentication options
+    // Create authentication options with all registered credentials
     const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions =
       {
         challenge,
-        allowCredentials: [
-          {
-            id: base64ToArrayBuffer(credentialId),
-            type: "public-key",
-            transports: ["internal"],
-          },
-        ],
+        allowCredentials: credentialIds.map((credentialId) => ({
+          id: base64ToArrayBuffer(credentialId),
+          type: "public-key" as const,
+          transports: ["internal" as const],
+        })),
         userVerification: "required",
         timeout: 60000,
       };
