@@ -9,7 +9,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PinInput } from "@/components/ui/pin-input";
-import { Lock, Shield, AlertTriangle, Fingerprint, Scan, Check, X } from "lucide-react";
+import {
+  Lock,
+  Shield,
+  AlertTriangle,
+  Fingerprint,
+  Scan,
+  Check,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { getBiometricName } from "@/lib/biometric-utils";
 
@@ -27,26 +35,23 @@ export default function LockSettingsDialog({
   open,
   onOpenChange,
 }: LockSettingsDialogProps) {
-  const { 
-    hasLockKey, 
-    setLockKey, 
-    updateLockKey,
+  const {
+    hasLockKey,
+    setLockKey,
     isBiometricAvailable,
     isBiometricEnabled,
     enableBiometric,
     disableBiometric,
   } = useLock();
-  const [currentPin, setCurrentPin] = useState("");
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [error, setError] = useState("");
   const [isBiometricLoading, setIsBiometricLoading] = useState(false);
-  
+
   const biometricName = getBiometricName();
   const isFaceId = biometricName === "Face ID";
 
   const resetForm = useCallback(() => {
-    setCurrentPin("");
     setNewPin("");
     setConfirmPin("");
     setError("");
@@ -59,7 +64,7 @@ export default function LockSettingsDialog({
     }
   }, [open, resetForm]);
 
-  const handleSetPin = async () => {
+  const handleSavePin = async () => {
     setError("");
 
     if (newPin.length !== 4) {
@@ -74,68 +79,26 @@ export default function LockSettingsDialog({
 
     try {
       await setLockKey(newPin);
-      toast.success("PIN set successfully");
+      toast.success(
+        hasLockKey ? "PIN updated successfully" : "PIN set successfully"
+      );
       onOpenChange(false);
       resetForm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to set PIN");
-    }
-  };
-
-  const handleUpdatePin = async () => {
-    setError("");
-
-    if (currentPin.length !== 4) {
-      setError("Please enter your current 4-digit PIN");
-      return;
-    }
-
-    if (newPin.length !== 4) {
-      setError("New PIN must be exactly 4 digits");
-      return;
-    }
-
-    if (newPin !== confirmPin) {
-      setError("New PINs do not match");
-      return;
-    }
-
-    try {
-      const success = await updateLockKey(currentPin, newPin);
-      if (!success) {
-        setError("Current PIN is incorrect");
-        setCurrentPin("");
-        return;
-      }
-
-      toast.success("PIN updated successfully");
-      onOpenChange(false);
-      resetForm();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update PIN");
-    }
-  };
-
-  const handleNewPinComplete = () => {
-    if (hasLockKey && currentPin.length === 4 && confirmPin.length === 4) {
-      handleUpdatePin();
+      setError(err instanceof Error ? err.message : "Failed to save PIN");
     }
   };
 
   const handleConfirmPinComplete = () => {
-    if (hasLockKey) {
-      if (currentPin.length === 4) {
-        handleUpdatePin();
-      }
-    } else {
-      handleSetPin();
+    if (newPin.length === 4 && confirmPin.length === 4) {
+      handleSavePin();
     }
   };
-  
+
   const handleToggleBiometric = async () => {
     setIsBiometricLoading(true);
     setError("");
-    
+
     try {
       if (isBiometricEnabled) {
         await disableBiometric();
@@ -147,7 +110,12 @@ export default function LockSettingsDialog({
         }
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : `Failed to ${isBiometricEnabled ? 'disable' : 'enable'} ${biometricName}`;
+      const message =
+        err instanceof Error
+          ? err.message
+          : `Failed to ${
+              isBiometricEnabled ? "disable" : "enable"
+            } ${biometricName}`;
       setError(message);
       toast.error(message);
     } finally {
@@ -169,7 +137,7 @@ export default function LockSettingsDialog({
               </DialogTitle>
               <DialogDescription className="text-sm">
                 {hasLockKey
-                  ? "Enter your current PIN and set a new one"
+                  ? "Set a new 4-digit PIN for your vault"
                   : "Secure your vault with a 4-digit PIN"}
               </DialogDescription>
             </div>
@@ -177,22 +145,6 @@ export default function LockSettingsDialog({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {hasLockKey && (
-            <div className="space-y-3">
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-center block">
-                Current PIN
-              </label>
-              <PinInput
-                value={currentPin}
-                onChange={(value) => {
-                  setCurrentPin(value);
-                  setError("");
-                }}
-                autoFocus
-              />
-            </div>
-          )}
-
           <div className="space-y-3">
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-center block">
               {hasLockKey ? "New PIN" : "Enter PIN"}
@@ -203,8 +155,7 @@ export default function LockSettingsDialog({
                 setNewPin(value);
                 setError("");
               }}
-              onComplete={handleNewPinComplete}
-              autoFocus={!hasLockKey}
+              autoFocus
             />
           </div>
 
@@ -247,9 +198,13 @@ export default function LockSettingsDialog({
                     )}
                   </div>
                   <div className="text-left">
-                    <div className="font-medium text-foreground">{biometricName}</div>
+                    <div className="font-medium text-foreground">
+                      {biometricName}
+                    </div>
                     <div className="text-xs text-muted-foreground">
-                      {isBiometricEnabled ? "Enabled" : "Quick unlock with biometrics"}
+                      {isBiometricEnabled
+                        ? "Enabled"
+                        : "Quick unlock with biometrics"}
                     </div>
                   </div>
                 </div>
@@ -287,13 +242,9 @@ export default function LockSettingsDialog({
             </Button>
             <Button
               type="button"
-              onClick={hasLockKey ? handleUpdatePin : handleSetPin}
+              onClick={handleSavePin}
               className="flex-1"
-              disabled={
-                newPin.length !== 4 ||
-                confirmPin.length !== 4 ||
-                (hasLockKey && currentPin.length !== 4)
-              }
+              disabled={newPin.length !== 4 || confirmPin.length !== 4}
             >
               {hasLockKey ? "Update PIN" : "Set PIN"}
             </Button>

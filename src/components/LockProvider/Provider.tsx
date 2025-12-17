@@ -84,12 +84,15 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
         throw new Error("User must be authenticated to set PIN");
       }
 
+      const isNewPin = !pinHash;
       const hash = await savePinHash(user.uid, key);
       setPinHash(hash);
-      // After setting lock key, lock the app
-      lock();
+      // Only lock the app when setting a new PIN (not updating existing)
+      if (isNewPin) {
+        lock();
+      }
     },
-    [lock, user?.uid]
+    [lock, user?.uid, pinHash]
   );
 
   const updateLockKey = useCallback(
