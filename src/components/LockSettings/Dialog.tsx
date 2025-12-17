@@ -9,8 +9,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PinInput } from "@/components/ui/pin-input";
-import { Lock, Shield, AlertTriangle } from "lucide-react";
+import { Lock, Shield, AlertTriangle, Fingerprint, Scan, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { getBiometricName } from "@/lib/biometric-utils";
 
 interface LockSettingsDialogProps {
   open: boolean;
@@ -26,11 +27,23 @@ export default function LockSettingsDialog({
   open,
   onOpenChange,
 }: LockSettingsDialogProps) {
-  const { hasLockKey, setLockKey, updateLockKey } = useLock();
+  const { 
+    hasLockKey, 
+    setLockKey, 
+    updateLockKey,
+    isBiometricAvailable,
+    isBiometricEnabled,
+    enableBiometric,
+    disableBiometric,
+  } = useLock();
   const [currentPin, setCurrentPin] = useState("");
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [error, setError] = useState("");
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+  
+  const biometricName = getBiometricName();
+  const isFaceId = biometricName === "Face ID";
 
   const resetForm = useCallback(() => {
     setCurrentPin("");
@@ -118,6 +131,29 @@ export default function LockSettingsDialog({
       handleSetPin();
     }
   };
+  
+  const handleToggleBiometric = async () => {
+    setIsBiometricLoading(true);
+    setError("");
+    
+    try {
+      if (isBiometricEnabled) {
+        await disableBiometric();
+        toast.success(`${biometricName} disabled`);
+      } else {
+        const success = await enableBiometric();
+        if (success) {
+          toast.success(`${biometricName} enabled`);
+        }
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : `Failed to ${isBiometricEnabled ? 'disable' : 'enable'} ${biometricName}`;
+      setError(message);
+      toast.error(message);
+    } finally {
+      setIsBiometricLoading(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -190,6 +226,47 @@ export default function LockSettingsDialog({
             <div className="flex items-center justify-center gap-2 text-sm text-destructive animate-fade-in">
               <AlertTriangle className="w-4 h-4" />
               <span>{error}</span>
+            </div>
+          )}
+
+          {/* Biometric toggle - only show when PIN is already set */}
+          {hasLockKey && isBiometricAvailable && (
+            <div className="pt-4 border-t border-border/50">
+              <button
+                type="button"
+                onClick={handleToggleBiometric}
+                disabled={isBiometricLoading}
+                className="w-full flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
+                    {isFaceId ? (
+                      <Scan className="w-5 h-5 text-primary" />
+                    ) : (
+                      <Fingerprint className="w-5 h-5 text-primary" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <div className="font-medium text-foreground">{biometricName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {isBiometricEnabled ? "Enabled" : "Quick unlock with biometrics"}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {isBiometricLoading ? (
+                    <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  ) : isBiometricEnabled ? (
+                    <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
+                      <Check className="w-4 h-4 text-green-500" />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                      <X className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+              </button>
             </div>
           )}
 

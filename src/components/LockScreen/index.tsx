@@ -1,7 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLock } from "../LockProvider";
 import { PinInput } from "@/components/ui/pin-input";
-import { Lock, Shield, AlertTriangle, KeyRound } from "lucide-react";
+import {
+  Lock,
+  Shield,
+  AlertTriangle,
+  KeyRound,
+  Fingerprint,
+  Scan,
+} from "lucide-react";
+import { getBiometricName } from "@/lib/biometric-utils";
 import {
   Dialog,
   DialogContent,
@@ -13,12 +21,50 @@ import {
 import { Button } from "@/components/ui/button";
 
 function LockScreen() {
-  const { unlock, resetLockKey } = useLock();
+  const { unlock, resetLockKey, isBiometricEnabled, unlockWithBiometric } =
+    useLock();
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [shake, setShake] = useState(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+
+  const biometricName = getBiometricName();
+  const isFaceId = biometricName === "Face ID";
+
+  // Check if device is mobile (auto-trigger biometric only on mobile)
+  const isMobileDevice = () => {
+    return /iphone|ipad|android|mobile/i.test(navigator.userAgent);
+  };
+
+  // Auto-trigger biometric on mount only on mobile devices
+  useEffect(() => {
+    if (isBiometricEnabled && isMobileDevice()) {
+      handleBiometricUnlock();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleBiometricUnlock = async () => {
+    if (!isBiometricEnabled || isBiometricLoading) return;
+
+    setIsBiometricLoading(true);
+    setError("");
+
+    try {
+      const success = await unlockWithBiometric();
+      if (!success) {
+        setError(
+          `${biometricName} authentication failed. Please use your PIN.`
+        );
+      }
+    } catch {
+      setError(`${biometricName} authentication failed. Please use your PIN.`);
+    } finally {
+      setIsBiometricLoading(false);
+    }
+  };
 
   const handlePinComplete = (value: string) => {
     setError("");
@@ -92,15 +138,49 @@ function LockScreen() {
 
           {/* PIN Input */}
           <div
-            className={`transition-all duration-300 ${shake ? "animate-shake" : ""}`}
+            className={`transition-all duration-300 ${
+              shake ? "animate-shake" : ""
+            }`}
           >
             <PinInput
               value={pin}
               onChange={handlePinChange}
               onComplete={handlePinComplete}
-              autoFocus
+              autoFocus={!isBiometricEnabled}
             />
           </div>
+
+          {/* Biometric unlock button */}
+          {isBiometricEnabled && (
+            <div className="mt-6 flex flex-col items-center gap-3 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <div className="h-px flex-1 bg-border/50 w-16" />
+                <span className="text-xs text-muted-foreground uppercase tracking-wide">
+                  or
+                </span>
+                <div className="h-px flex-1 bg-border/50 w-16" />
+              </div>
+              <button
+                type="button"
+                onClick={handleBiometricUnlock}
+                disabled={isBiometricLoading}
+                className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <div className="relative">
+                  {isBiometricLoading ? (
+                    <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  ) : isFaceId ? (
+                    <Scan className="w-10 h-10 text-primary group-hover:scale-110 transition-transform" />
+                  ) : (
+                    <Fingerprint className="w-10 h-10 text-primary group-hover:scale-110 transition-transform" />
+                  )}
+                </div>
+                <span className="text-sm font-medium text-primary">
+                  {isBiometricLoading ? "Verifying..." : `Use ${biometricName}`}
+                </span>
+              </button>
+            </div>
+          )}
 
           {/* Error message */}
           {error && (
