@@ -19,9 +19,26 @@ const Bank = ({ vault, isEdit, handleChange }: BankProps) => {
           handleChange={handleChange}
         />
         <ValueCard
+          label="Customer ID"
+          value={vault.customerId}
+          id="customerId"
+          isEditable={isEdit}
+          handleChange={handleChange}
+        />
+      </div>
+      
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ValueCard
           label="IFSC Code"
           value={vault.ifsc}
           id="ifsc"
+          isEditable={isEdit}
+          handleChange={handleChange}
+        />
+        <ValueCard
+          label="Username"
+          value={vault.username}
+          id="username"
           isEditable={isEdit}
           handleChange={handleChange}
         />

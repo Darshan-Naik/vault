@@ -25,6 +25,8 @@ export type TCredential = {
 export type TBank = {
   type: "BANK";
   accountNumber: number;
+  customerId?: string;
+  username?: string;
   password?: string;
   masterPassword?: string;
   ifsc?: string;

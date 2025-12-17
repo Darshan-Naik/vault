@@ -23,6 +23,20 @@ const Bank = ({ data, handleChange }: BankProps) => {
         </div>
         <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Customer ID
+          </label>
+          <Input
+            placeholder="Enter customer ID"
+            value={data?.customerId}
+            onChange={(e) => handleChange("customerId", e.target.value)}
+            maxLength={30}
+          />
+        </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
             IFSC Code
           </label>
           <Input
@@ -32,8 +46,19 @@ const Bank = ({ data, handleChange }: BankProps) => {
             maxLength={20}
           />
         </div>
+        <div className="space-y-2">
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Username
+          </label>
+          <Input
+            placeholder="Enter username"
+            value={data?.username}
+            onChange={(e) => handleChange("username", e.target.value)}
+            maxLength={50}
+          />
+        </div>
       </div>
-      
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
