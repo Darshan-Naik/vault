@@ -1,8 +1,6 @@
 import { TVault } from "@/lib/types";
-import Credential from "./Credential";
-import { iconMap } from "@/lib/configs";
-import Bank from "./Bank";
-import Card from "./Card";
+import { iconMap, typeLabels } from "@/lib/configs";
+import ConfiguredVaultView from "./ConfiguredVaultView";
 import { ChevronLeft, Edit, Save, X, Shield } from "lucide-react";
 import {
   Tooltip,
@@ -57,15 +55,11 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
     }
   };
 
-  // Get type label
-  const typeLabels: Record<string, string> = {
-    CREDENTIAL: "Login Credential",
-    BANK: "Bank Account",
-    CARD: "Payment Card",
-  };
-
   return (
-    <div className="flex flex-col h-full overflow-hidden" key={isEdit ? "vault-edit" : "vault"}>
+    <div
+      className="flex flex-col h-full overflow-hidden"
+      key={isEdit ? "vault-edit" : "vault"}
+    >
       {/* Header */}
       <div className="flex-shrink-0 p-4 md:p-6 border-b border-border/50 bg-card/30 backdrop-blur-sm">
         <div className="flex items-center justify-between gap-4">
@@ -77,14 +71,16 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            
-            <div className={cn(
-              "flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center",
-              "bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20"
-            )}>
+
+            <div
+              className={cn(
+                "flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center",
+                "bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20"
+              )}
+            >
               {Icon && <Icon className="h-5 w-5 md:h-6 md:w-6 text-primary" />}
             </div>
-            
+
             <div className="min-w-0">
               {isEdit ? (
                 <input
@@ -104,7 +100,7 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
               </p>
             </div>
           </div>
-          
+
           {/* Action buttons */}
           <div className="flex items-center gap-2">
             {isEdit ? (
@@ -123,7 +119,7 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
                   </TooltipTrigger>
                   <TooltipContent>Cancel</TooltipContent>
                 </Tooltip>
-                
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
@@ -158,32 +154,27 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
                   </TooltipTrigger>
                   <TooltipContent>Edit vault</TooltipContent>
                 </Tooltip>
-                
-                <DeleteVault vault={vault} handleVaultSelect={handleVaultSelect} />
+
+                <DeleteVault
+                  vault={vault}
+                  handleVaultSelect={handleVaultSelect}
+                />
               </>
             )}
           </div>
         </div>
       </div>
-      
-      {/* Content */}
+
+      {/* Content - rendered from config */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
         <div className="max-w-2xl">
-          {vaultData.type === "CREDENTIAL" && (
-            <Credential
-              vault={vaultData}
-              isEdit={isEdit}
-              handleChange={handleChange}
-            />
-          )}
-          {vaultData.type === "BANK" && (
-            <Bank vault={vaultData} isEdit={isEdit} handleChange={handleChange} />
-          )}
-          {vaultData.type === "CARD" && (
-            <Card vault={vaultData} isEdit={isEdit} handleChange={handleChange} />
-          )}
+          <ConfiguredVaultView
+            vault={vaultData}
+            isEdit={isEdit}
+            handleChange={handleChange}
+          />
         </div>
-        
+
         {/* Decorative icon - desktop only */}
         <div className="hidden lg:block fixed bottom-8 right-8 opacity-5 pointer-events-none">
           <Shield className="w-64 h-64" />

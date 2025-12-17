@@ -17,12 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { vaultTypes, iconMap } from "@/lib/configs";
+import { vaultTypes, iconMap, getDefaultValues } from "@/lib/configs";
 import { TVault } from "@/lib/types";
 import { Textarea } from "@/components/ui/textarea";
-import Credential from "./Credential";
-import Bank from "./Bank";
-import Card from "./Card";
+import ConfiguredForm from "./ConfiguredForm";
 import { Shield } from "lucide-react";
 
 type AddNewContentProps = {
@@ -32,12 +30,10 @@ type AddNewContentProps = {
 const AddNewContent = ({ handleClose }: AddNewContentProps) => {
   const [data, setData] = useState<TVault>({
     type: "CREDENTIAL",
-    uid: "",
-    password: "",
-    url: "",
     id: "",
     title: "",
-  });
+    ...getDefaultValues("CREDENTIAL"),
+  } as TVault);
   const { mutateAsync: addVault, isPending } = useAddVault();
   const { user } = useAuth();
 
@@ -61,6 +57,19 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
   const handleChange = (key: string, value: string) => {
     setData((prevData: TVault | undefined) => {
       const newData = prevData ? { ...prevData } : ({} as TVault);
+      
+      // When type changes, reset to new type's default values
+      if (key === "type" && value !== prevData?.type) {
+        const defaults = getDefaultValues(value);
+        return {
+          type: value,
+          id: newData.id,
+          title: newData.title,
+          note: newData.note,
+          ...defaults,
+        } as TVault;
+      }
+      
       (newData as TVault & { [key: string]: unknown })[key] = value;
       return newData;
     });
@@ -133,18 +142,12 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
           />
         </div>
 
-        {/* Type-specific fields */}
-        <div className="space-y-4">
-          {data?.type === "CREDENTIAL" && (
-            <Credential data={data} handleChange={handleChange} />
-          )}
-          {data.type === "BANK" && (
-            <Bank data={data} handleChange={handleChange} />
-          )}
-          {data.type === "CARD" && (
-            <Card data={data} handleChange={handleChange} />
-          )}
-        </div>
+        {/* Type-specific fields - rendered from config */}
+        <ConfiguredForm
+          type={data.type}
+          data={data as Record<string, unknown>}
+          handleChange={handleChange}
+        />
 
         {/* Notes */}
         <div className="space-y-2">
