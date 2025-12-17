@@ -169,18 +169,18 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6">
         <div className="max-w-2xl">
-          {vault.type === "CREDENTIAL" && (
+          {vaultData.type === "CREDENTIAL" && (
             <Credential
-              vault={vault}
+              vault={vaultData}
               isEdit={isEdit}
               handleChange={handleChange}
             />
           )}
-          {vault.type === "BANK" && (
-            <Bank vault={vault} isEdit={isEdit} handleChange={handleChange} />
+          {vaultData.type === "BANK" && (
+            <Bank vault={vaultData} isEdit={isEdit} handleChange={handleChange} />
           )}
-          {vault.type === "CARD" && (
-            <Card vault={vault} isEdit={isEdit} handleChange={handleChange} />
+          {vaultData.type === "CARD" && (
+            <Card vault={vaultData} isEdit={isEdit} handleChange={handleChange} />
           )}
         </div>
         
