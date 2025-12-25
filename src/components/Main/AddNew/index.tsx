@@ -14,11 +14,11 @@ const AddNew = () => {
         <Button
           variant="default"
           size="default"
-          className="w-full gap-2"
+          className="w-full gap-2 h-9 text-sm"
           onClick={() => setIsOpen(true)}
         >
-          <Plus className="h-4 w-4" />
-          <span>Add New Vault</span>
+          <Plus className="h-3.5 w-3.5" />
+          <span>New Vault</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">

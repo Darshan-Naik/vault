@@ -86,15 +86,9 @@ export function PinInput({
     <div className={cn("flex gap-3 justify-center", className)}>
       {Array.from({ length }).map((_, index) => {
         const isFilled = !!value[index];
-        const isFocused = document.activeElement === inputRefs.current[index];
 
         return (
           <div key={index} className="relative">
-            {/* Glow effect */}
-            {isFocused && (
-              <div className="absolute inset-0 bg-primary/30 rounded-xl blur-md" />
-            )}
-
             <input
               ref={(el) => {
                 inputRefs.current[index] = el;
@@ -108,12 +102,12 @@ export function PinInput({
               onFocus={() => handleFocus(index)}
               disabled={disabled}
               className={cn(
-                "relative w-14 h-16 text-center text-2xl font-semibold rounded-xl",
-                "bg-secondary/50 border-2 border-border/50",
-                "focus:outline-none focus:border-primary focus:bg-secondary",
+                "relative w-14 h-16 text-center text-2xl font-semibold rounded-lg",
+                "bg-card/80 border-2 border-border shadow-sm",
+                "focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/50 focus:shadow-lg focus:shadow-primary/10",
                 "transition-all duration-200",
                 "placeholder:text-muted-foreground/30",
-                isFilled && "border-primary/50 bg-primary/10",
+                isFilled && "border-primary/50 shadow-md shadow-primary/5",
                 disabled && "opacity-50 cursor-not-allowed"
               )}
               style={

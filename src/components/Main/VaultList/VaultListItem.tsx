@@ -20,40 +20,42 @@ const VaultListItem = ({ vault, onClick, active }: VaultListItemProps) => {
   };
 
   return (
-    <li className={cn("opacity-0 animate-fade-in")}>
+    <li>
       <button
         onClick={() => onClick(vault)}
         className={cn(
-          "group text-left w-full rounded-xl p-3 flex items-center gap-3",
-          "bg-card/50 border border-transparent",
-          "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 focus:ring-offset-background"
+          "group text-left w-full rounded-lg px-3 py-2.5 flex items-center gap-3",
+          "transition-all duration-200",
+          active
+            ? "bg-card border border-border shadow-sm"
+            : "hover:bg-card/60 border border-transparent hover:border-border/30 hover:shadow-sm"
         )}
       >
         {/* Icon */}
         <div
           className={cn(
-            "flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors",
+            "flex-shrink-0 w-8 h-8 rounded-md flex items-center justify-center transition-all duration-200",
             active
-              ? "bg-primary/20 text-primary"
-              : "bg-secondary text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
+              ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
+              : "bg-card/80 border border-border text-muted-foreground group-hover:text-foreground group-hover:bg-card group-hover:shadow-sm"
           )}
         >
-          {Icon && <Icon className="h-5 w-5" />}
+          {Icon && <Icon className="h-4 w-4" />}
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <span
             className={cn(
-              "block font-medium truncate transition-colors",
+              "block text-sm font-medium truncate transition-colors",
               active
                 ? "text-foreground"
-                : "text-foreground/80 group-hover:text-foreground"
+                : "text-foreground/90 group-hover:text-foreground"
             )}
           >
             {vault.title}
           </span>
-          <span className="block text-xs text-muted-foreground truncate">
+          <span className="block text-xs text-muted-foreground truncate mt-0.5">
             {typeLabels[vault.type] || vault.type}
           </span>
         </div>
@@ -61,10 +63,10 @@ const VaultListItem = ({ vault, onClick, active }: VaultListItemProps) => {
         {/* Arrow */}
         <ChevronRight
           className={cn(
-            "flex-shrink-0 h-4 w-4 transition-all duration-200",
+            "flex-shrink-0 h-3.5 w-3.5 transition-all duration-150",
             active
-              ? "text-primary opacity-100 translate-x-0"
-              : "text-muted-foreground opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0"
+              ? "text-muted-foreground opacity-100"
+              : "text-muted-foreground/50 opacity-0 group-hover:opacity-100"
           )}
         />
       </button>

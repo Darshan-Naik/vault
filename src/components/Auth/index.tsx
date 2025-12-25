@@ -3,7 +3,7 @@ import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { auth } from "@/firebase";
-import { Shield, Lock, KeyRound } from "lucide-react";
+import { Shield } from "lucide-react";
 
 function Auth() {
   const [error, setError] = useState<string>("");
@@ -23,46 +23,20 @@ function Auth() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-background">
-      {/* Animated background */}
-      <div className="absolute inset-0 gradient-mesh" />
-      <div className="absolute inset-0 gradient-radial" />
-
-      {/* Floating decorative elements */}
-      <div className="absolute top-1/4 left-1/4 opacity-20 animate-float hidden sm:block">
-        <Lock
-          className="w-16 h-16 text-primary"
-          style={{ animationDelay: "0s" }}
-        />
-      </div>
-      <div
-        className="absolute top-1/3 right-1/4 opacity-15 animate-float hidden sm:block"
-        style={{ animationDelay: "1s" }}
-      >
-        <Shield className="w-20 h-20 text-primary" />
-      </div>
-      <div
-        className="absolute bottom-1/4 left-1/3 opacity-10 animate-float hidden sm:block"
-        style={{ animationDelay: "2s" }}
-      >
-        <KeyRound className="w-14 h-14 text-primary" />
-      </div>
-
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
       {/* Main card */}
-      <div className="relative w-full max-w-md animate-fade-in">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-primary/20 rounded-2xl blur-xl" />
-
-        <div className="relative rounded-2xl p-8 md:p-10 vault-glow bg-card/80 backdrop-blur-xl border border-border/50">
+      <div className="w-full max-w-sm">
+        <div className="rounded-lg p-8 bg-card border border-border shadow-elevated">
           {/* Logo and branding */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 mb-6 pulse-glow">
-              <Shield className="w-10 h-10 text-primary" />
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 mb-5 shadow-sm">
+              <Shield className="w-7 h-7 text-primary" />
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-bold text-gradient mb-2">
+            <h1 className="text-2xl font-semibold text-foreground mb-2">
               Vault
             </h1>
-            <p className="text-muted-foreground text-sm md:text-base">
+            <p className="text-sm text-muted-foreground">
               Your secrets, secured with end-to-end encryption
             </p>
           </div>
@@ -71,16 +45,16 @@ function Auth() {
           <Button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full h-12 text-base font-medium bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl transition-all duration-300 hover:shadow-glow"
+            className="w-full h-10 text-sm font-medium"
           >
             {isLoading ? (
               <div className="flex items-center gap-2">
-                <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                 <span>Signing in...</span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <svg className="w-4 h-4" viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -112,10 +86,10 @@ function Auth() {
 
       {/* Error toast */}
       {error && (
-        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 animate-slide-in-left">
+        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96">
           <Alert
             variant="destructive"
-            className="bg-card border-destructive/50"
+            className="bg-card border-destructive"
           >
             <AlertDescription>{error}</AlertDescription>
           </Alert>

@@ -17,11 +17,11 @@ const VaultList = ({
   selectedVault,
 }: VaultListProps) => {
   return (
-    <div className="px-3 pb-4">
+    <div>
       {isLoading ? (
         <VaultsSkeleton />
       ) : vaults && vaults.length > 0 ? (
-        <ul className="space-y-1.5">
+        <ul className="space-y-1">
           {vaults.map((vault) => (
             <VaultListItem
               active={selectedVault?.id === vault.id}
@@ -32,13 +32,13 @@ const VaultList = ({
           ))}
         </ul>
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 px-4 text-center animate-fade-in">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-            <FileKey2 className="w-8 h-8 text-primary/50" />
+        <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+          <div className="w-12 h-12 rounded-lg bg-card border border-border flex items-center justify-center mb-3">
+            <FileKey2 className="w-6 h-6 text-muted-foreground" />
           </div>
-          <h4 className="font-medium text-foreground mb-1">No vaults yet</h4>
-          <p className="text-sm text-muted-foreground">
-            Create your first vault to start storing your secrets securely.
+          <h4 className="text-sm font-medium text-foreground mb-1">No vaults yet</h4>
+          <p className="text-xs text-muted-foreground">
+            Create your first vault to get started.
           </p>
         </div>
       )}

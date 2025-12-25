@@ -7,7 +7,7 @@ const VaultsSkeleton = () => {
           className="opacity-0 animate-fade-in"
           style={{ animationDelay: `${index * 0.05}s` }}
         >
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-card/50">
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-card border border-border">
             {/* Icon skeleton */}
             <div className="flex-shrink-0 w-10 h-10 rounded-lg shimmer" />
             

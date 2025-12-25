@@ -28,59 +28,51 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full">
-        {/* Blur background */}
-        <div className="absolute inset-0 glass" />
-        
-        <div className="relative flex justify-between items-center py-3 px-4 md:px-6">
+      <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/90 backdrop-blur-2xl shadow-sm">
+        <div className="flex justify-between items-center h-14 px-6">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
-              <Shield className="h-5 w-5 text-primary" />
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shadow-sm">
+              <Shield className="h-4 w-4 text-primary" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-bold text-gradient">Vault</span>
-              <span className="text-[10px] text-muted-foreground -mt-1 hidden sm:block">
-                Secure Password Manager
-              </span>
-            </div>
+            <span className="text-base font-semibold text-foreground tracking-tight">Vault</span>
           </div>
           
           {/* User menu */}
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
-              <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/5 transition-colors group">
-                <Avatar className="h-8 w-8 ring-2 ring-primary/20 ring-offset-2 ring-offset-background">
+              <button className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-card/80 transition-all duration-200 group shadow-interactive">
+                <Avatar className="h-7 w-7 ring-1 ring-border/50">
                   <AvatarImage
                     src={user?.photoURL || undefined}
                     alt={user?.displayName || "User"}
                   />
-                  <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                  <AvatarFallback className="bg-card border border-border text-foreground text-xs font-medium">
                     {user?.displayName?.charAt(0)?.toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
               </button>
             </PopoverTrigger>
             
-            <PopoverContent className="w-72 p-0 glass border-border/50" align="end">
+            <PopoverContent className="w-64 p-1 bg-card border-border shadow-elevated" align="end">
               {/* User info header */}
-              <div className="p-4 border-b border-border/50">
+              <div className="px-3 py-2.5 border-b border-border">
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12 ring-2 ring-primary/20">
+                  <Avatar className="h-9 w-9">
                     <AvatarImage
                       src={user?.photoURL || undefined}
                       alt={user?.displayName || "User"}
                     />
-                    <AvatarFallback className="bg-primary/10 text-primary text-lg font-medium">
+                    <AvatarFallback className="bg-secondary text-foreground text-sm font-medium">
                       {user?.displayName?.charAt(0)?.toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-foreground truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {user?.displayName}
                     </p>
-                    <p className="text-sm text-muted-foreground truncate">
+                    <p className="text-xs text-muted-foreground truncate">
                       {user?.email}
                     </p>
                   </div>
@@ -88,22 +80,22 @@ const Header = () => {
               </div>
               
               {/* Menu items */}
-              <div className="p-2">
+              <div className="p-1">
                 <Button
                   variant="ghost"
-                  className="w-full justify-start gap-3 h-11 px-3 hover:bg-white/5"
+                  className="w-full justify-start gap-2.5 h-9 px-2.5 text-sm"
                   onClick={handleLockSettingsClick}
                 >
-                  <Settings className="w-4 h-4 text-muted-foreground" />
+                  <Settings className="w-4 h-4" />
                   <ButtonLabel />
                 </Button>
                 
-                <div className="h-px bg-border/50 my-2" />
+                <div className="h-px bg-border my-1" />
                 
                 <Button
                   onClick={handleSignOut}
                   variant="ghost"
-                  className="w-full justify-start gap-3 h-11 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  className="w-full justify-start gap-2.5 h-9 px-2.5 text-sm text-destructive hover:text-destructive hover:bg-destructive/10"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out

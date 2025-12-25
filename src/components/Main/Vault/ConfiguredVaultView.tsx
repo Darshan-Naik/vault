@@ -34,7 +34,7 @@ const ConfiguredVaultView = ({
   const renderRow = (row: RowConfig, index: number) => {
     const columns = row.columns || 2;
     const gridClass = cn(
-      "grid gap-4",
+      "grid gap-5",
       columns === 1 && "grid-cols-1",
       columns === 2 && "sm:grid-cols-2",
       columns === 3 && "sm:grid-cols-3"
@@ -48,7 +48,7 @@ const ConfiguredVaultView = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {config.rows.map((row, index) => renderRow(row, index))}
 
       {/* Notes field - common to all vault types */}

@@ -1,7 +1,7 @@
 import { TVault } from "@/lib/types";
 import { iconMap, typeLabels } from "@/lib/configs";
 import ConfiguredVaultView from "./ConfiguredVaultView";
-import { ChevronLeft, Edit, Save, X, Shield } from "lucide-react";
+import { ChevronLeft, Edit, Save, X } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -61,24 +61,24 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
       key={isEdit ? "vault-edit" : "vault"}
     >
       {/* Header */}
-      <div className="flex-shrink-0 p-4 md:p-6 border-b border-border/50 bg-card/30 backdrop-blur-sm">
+      <div className="flex-shrink-0 px-6 py-5 border-b border-border/50 bg-background/95 backdrop-blur-sm">
         <div className="flex items-center justify-between gap-4">
           {/* Back button and title */}
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => handleVaultSelect(undefined)}
-              className="md:hidden flex-shrink-0 w-9 h-9 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
+              className="md:hidden flex-shrink-0 w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-card/80 transition-colors"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-4 w-4" />
             </button>
 
             <div
               className={cn(
-                "flex-shrink-0 w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center",
-                "bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20"
+                "flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center",
+                "bg-card border border-border shadow-sm"
               )}
             >
-              {Icon && <Icon className="h-5 w-5 md:h-6 md:w-6 text-primary" />}
+              {Icon && <Icon className="h-4 w-4 text-foreground" />}
             </div>
 
             <div className="min-w-0">
@@ -87,22 +87,22 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
                   type="text"
                   value={vaultData.title}
                   onChange={(e) => handleChange("title", e.target.value)}
-                  className="text-lg md:text-xl font-semibold bg-transparent border-b-2 border-primary/50 focus:border-primary outline-none w-full"
+                  className="text-base font-semibold bg-transparent border-b border-primary/50 focus:border-primary outline-none w-full pb-1"
                   placeholder="Vault title"
                 />
               ) : (
-                <h1 className="text-lg md:text-xl font-semibold truncate">
+                <h1 className="text-base font-semibold truncate">
                   {vault.title}
                 </h1>
               )}
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {typeLabels[vault.type] || vault.type}
               </p>
             </div>
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             {isEdit ? (
               <>
                 <Tooltip>
@@ -112,9 +112,9 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
                         setIsEdit(false);
                         setVaultData(vault);
                       }}
-                      className="w-9 h-9 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
+                      className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-card/80 transition-colors"
                     >
-                      <X className="w-4 h-4 text-muted-foreground" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>Cancel</TooltipContent>
@@ -126,15 +126,15 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
                       onClick={handleSave}
                       disabled={!vaultData.title.trim() || isPending}
                       className={cn(
-                        "w-9 h-9 rounded-lg flex items-center justify-center transition-all",
-                        "bg-primary/20 hover:bg-primary/30 text-primary",
+                        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                        "bg-primary hover:bg-primary/90 text-primary-foreground",
                         "disabled:opacity-50 disabled:cursor-not-allowed"
                       )}
                     >
                       {isPending ? (
-                        <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                        <div className="w-3.5 h-3.5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                       ) : (
-                        <Save className="w-4 h-4" />
+                        <Save className="w-3.5 h-3.5" />
                       )}
                     </button>
                   </TooltipTrigger>
@@ -147,9 +147,9 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
                   <TooltipTrigger asChild>
                     <button
                       onClick={() => setIsEdit(true)}
-                      className="w-9 h-9 rounded-lg bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
+                      className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-card/80 transition-colors"
                     >
-                      <Edit className="w-4 h-4 text-muted-foreground" />
+                      <Edit className="w-3.5 h-3.5" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>Edit vault</TooltipContent>
@@ -166,18 +166,13 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
       </div>
 
       {/* Content - rendered from config */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6">
+      <div className="flex-1 overflow-y-auto px-6 py-6">
         <div className="max-w-2xl">
           <ConfiguredVaultView
             vault={vaultData}
             isEdit={isEdit}
             handleChange={handleChange}
           />
-        </div>
-
-        {/* Decorative icon - desktop only */}
-        <div className="hidden lg:block fixed bottom-8 right-8 opacity-5 pointer-events-none">
-          <Shield className="w-64 h-64" />
         </div>
       </div>
     </div>

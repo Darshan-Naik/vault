@@ -28,28 +28,24 @@ const Main = () => {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden w-screen bg-background">
-      {/* Background effects */}
-      <div className="fixed inset-0 gradient-mesh pointer-events-none" />
-      <div className="fixed inset-0 gradient-radial pointer-events-none" />
-      
       <Header />
       
       <div className="flex-1 flex overflow-hidden relative">
         {/* Sidebar */}
         <aside
           className={cn(
-            "flex flex-col w-full md:w-80 lg:w-96 overflow-hidden md:border-r border-border/50",
-            "bg-card/30 backdrop-blur-sm",
+            "flex flex-col w-full md:w-72 lg:w-80 overflow-hidden md:border-r border-border",
+            "bg-background",
             selectedVault && "hidden md:flex"
           )}
         >
           {/* Sidebar header with Add button */}
-          <div className="p-4 space-y-4">
+          <div className="px-6 py-5 space-y-4 border-b border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-semibold text-foreground">My Vaults</h2>
-                <p className="text-xs text-muted-foreground">
-                  {vaults?.length || 0} items stored
+                <h2 className="text-sm font-semibold text-foreground tracking-tight">Vaults</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {vaults?.length || 0} items
                 </p>
               </div>
             </div>
@@ -57,7 +53,7 @@ const Main = () => {
           </div>
           
           {/* Vault list */}
-          <div className="flex-1 min-h-0 overflow-y-auto">
+          <div className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
             <VaultList
               vaults={vaults}
               isLoading={isLoading}
@@ -69,7 +65,7 @@ const Main = () => {
         
         {/* Main content area */}
         {selectedVault ? (
-          <main className="flex-1 overflow-hidden animate-fade-in">
+          <main className="flex-1 overflow-hidden">
             <Vault
               vault={selectedVault}
               handleVaultSelect={handleVaultSelect}
@@ -79,34 +75,31 @@ const Main = () => {
             />
           </main>
         ) : (
-          <main className="flex-1 hidden md:flex flex-col items-center justify-center p-8">
+          <main className="flex-1 hidden md:flex flex-col items-center justify-center p-12">
             {/* Empty state */}
-            <div className="text-center max-w-md animate-fade-in">
-              <div className="relative inline-block mb-6">
-                <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse-slow" />
-                <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
-                  <Shield className="w-12 h-12 text-primary/40" />
-                </div>
+            <div className="text-center max-w-sm">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-card border border-border mb-6">
+                <Shield className="w-8 h-8 text-muted-foreground" />
               </div>
               
-              <h3 className="text-xl font-semibold text-foreground mb-2">
+              <h3 className="text-lg font-medium text-foreground mb-2">
                 Select a vault
               </h3>
-              <p className="text-muted-foreground text-sm mb-6">
+              <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
                 Choose a vault from the sidebar to view its contents, or create a new one to get started.
               </p>
               
               {/* Quick tips */}
-              <div className="space-y-3 text-left">
+              <div className="space-y-4 text-left">
                 {[
                   { icon: Lock, text: "All data is encrypted before leaving your device" },
                   { icon: Plus, text: "Add credentials, cards, and bank details" },
                 ].map((tip, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm text-muted-foreground">
-                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <tip.icon className="w-4 h-4 text-primary" />
+                  <div key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                    <div className="w-5 h-5 rounded-md bg-card border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <tip.icon className="w-3 h-3 text-foreground" />
                     </div>
-                    <span>{tip.text}</span>
+                    <span className="leading-relaxed">{tip.text}</span>
                   </div>
                 ))}
               </div>

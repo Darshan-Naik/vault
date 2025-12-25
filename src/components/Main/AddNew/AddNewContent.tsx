@@ -81,15 +81,15 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
     <>
       <DialogHeader>
         <div className="flex items-center gap-3 mb-1">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center">
             {SelectedIcon ? (
-              <SelectedIcon className="w-5 h-5 text-primary" />
+              <SelectedIcon className="w-4 h-4 text-foreground" />
             ) : (
-              <Shield className="w-5 h-5 text-primary" />
+              <Shield className="w-4 h-4 text-foreground" />
             )}
           </div>
           <div>
-            <DialogTitle className="text-xl">Add New Vault</DialogTitle>
+            <DialogTitle className="text-lg">Add New Vault</DialogTitle>
             <DialogDescription className="text-sm">
               Securely store your sensitive information
             </DialogDescription>
@@ -100,7 +100,7 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
       <div className="py-4 space-y-4">
         {/* Type selector */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          <label className="text-xs font-medium text-muted-foreground">
             Vault Type
           </label>
           <Select
@@ -130,7 +130,7 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
 
         {/* Title */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          <label className="text-xs font-medium text-muted-foreground">
             Title
           </label>
           <Input
@@ -151,7 +151,7 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
 
         {/* Notes */}
         <div className="space-y-2">
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          <label className="text-xs font-medium text-muted-foreground">
             Notes (Optional)
           </label>
           <Textarea

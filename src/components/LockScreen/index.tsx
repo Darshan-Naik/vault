@@ -5,7 +5,6 @@ import {
   Lock,
   Shield,
   AlertTriangle,
-  KeyRound,
   Fingerprint,
   Scan,
 } from "lucide-react";
@@ -95,43 +94,25 @@ function LockScreen() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-background">
-      {/* Animated background */}
-      <div className="absolute inset-0 gradient-mesh" />
-      <div className="absolute inset-0 gradient-radial" />
-
-      {/* Decorative elements */}
-      <div className="absolute top-20 right-20 opacity-10 hidden md:block">
-        <Shield className="w-32 h-32 text-primary animate-pulse-slow" />
-      </div>
-      <div className="absolute bottom-20 left-20 opacity-10 hidden md:block">
-        <KeyRound
-          className="w-24 h-24 text-primary animate-pulse-slow"
-          style={{ animationDelay: "1s" }}
-        />
-      </div>
-
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
       {/* Main card */}
-      <div className="relative w-full max-w-sm animate-fade-in">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-primary/20 rounded-2xl blur-xl" />
-
-        <div className="relative rounded-2xl p-8 vault-glow bg-card/80 backdrop-blur-xl border border-border/50">
-          {/* Lock icon with pulse */}
+      <div className="w-full max-w-sm">
+        <div className="rounded-lg p-8 bg-card border border-border shadow-elevated">
+          {/* Lock icon */}
           <div className="flex justify-center mb-6">
             <div className={`relative ${shake ? "animate-shake" : ""}`}>
-              <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse-slow" />
-              <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 flex items-center justify-center">
-                <Lock className="h-10 w-10 text-primary" />
+              <div className="relative w-16 h-16 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shadow-sm">
+                <Lock className="h-8 w-8 text-primary" />
               </div>
             </div>
           </div>
 
           {/* Title */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-foreground mb-2">
+            <h1 className="text-xl font-semibold text-foreground mb-2">
               Vault Locked
             </h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm text-muted-foreground">
               Enter your 4-digit PIN to unlock
             </p>
           </div>
@@ -152,30 +133,30 @@ function LockScreen() {
 
           {/* Biometric unlock button */}
           {isBiometricEnabled && (
-            <div className="mt-6 flex flex-col items-center gap-3 animate-fade-in">
+            <div className="mt-6 flex flex-col items-center gap-3">
               <div className="flex items-center gap-3">
-                <div className="h-px flex-1 bg-border/50 w-16" />
-                <span className="text-xs text-muted-foreground uppercase tracking-wide">
+                <div className="h-px flex-1 bg-border w-16" />
+                <span className="text-xs text-muted-foreground">
                   or
                 </span>
-                <div className="h-px flex-1 bg-border/50 w-16" />
+                <div className="h-px flex-1 bg-border w-16" />
               </div>
               <button
                 type="button"
                 onClick={handleBiometricUnlock}
                 disabled={isBiometricLoading}
-                className="group flex flex-col items-center gap-2 p-4 rounded-xl bg-primary/5 hover:bg-primary/10 border border-primary/20 hover:border-primary/40 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="group flex flex-col items-center gap-2 p-3 rounded-lg bg-card border border-border hover:bg-card/80 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed w-full"
               >
                 <div className="relative">
                   {isBiometricLoading ? (
-                    <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                   ) : isFaceId ? (
-                    <Scan className="w-10 h-10 text-primary group-hover:scale-110 transition-transform" />
+                    <Scan className="w-8 h-8 text-foreground" />
                   ) : (
-                    <Fingerprint className="w-10 h-10 text-primary group-hover:scale-110 transition-transform" />
+                    <Fingerprint className="w-8 h-8 text-foreground" />
                   )}
                 </div>
-                <span className="text-sm font-medium text-primary">
+                <span className="text-sm font-medium text-foreground">
                   {isBiometricLoading ? "Verifying..." : `Use ${biometricName}`}
                 </span>
               </button>
@@ -184,7 +165,7 @@ function LockScreen() {
 
           {/* Error message */}
           {error && (
-            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-destructive animate-fade-in">
+            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-destructive">
               <AlertTriangle className="w-4 h-4" />
               <span>{error}</span>
             </div>
@@ -192,7 +173,7 @@ function LockScreen() {
 
           {/* Reset link */}
           {error && error.includes("Incorrect PIN") && (
-            <div className="mt-4 text-center animate-fade-in">
+            <div className="mt-4 text-center">
               <button
                 type="button"
                 onClick={() => setShowResetDialog(true)}
@@ -204,7 +185,7 @@ function LockScreen() {
           )}
 
           {/* Security note */}
-          <div className="mt-8 pt-6 border-t border-border/50">
+          <div className="mt-8 pt-6 border-t border-border">
             <p className="text-xs text-center text-muted-foreground flex items-center justify-center gap-2">
               <Shield className="w-3 h-3" />
               Protected by end-to-end encryption
@@ -215,7 +196,7 @@ function LockScreen() {
 
       {/* Reset Dialog */}
       <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
-        <DialogContent className="bg-card border-border/50 sm:max-w-md">
+        <DialogContent className="bg-card border-border sm:max-w-md">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -246,7 +227,6 @@ function LockScreen() {
               variant="outline"
               onClick={() => setShowResetDialog(false)}
               disabled={isResetting}
-              className="border-border/50"
             >
               Cancel
             </Button>

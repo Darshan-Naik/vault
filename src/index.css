@@ -6,48 +6,48 @@
 
 @layer base {
   :root {
-    --radius: 0.75rem;
+    --radius: 0.625rem;
 
-    /* Dark theme with emerald accent - vault security feel */
-    --background: 220 20% 6%;
-    --foreground: 210 20% 98%;
+    /* Rich dark theme - sleek and tech-forward */
+    --background: 0 0% 6%;
+    --foreground: 0 0% 98%;
 
-    --card: 220 18% 10%;
-    --card-foreground: 210 20% 98%;
+    --card: 0 0% 9%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 220 18% 8%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Emerald accent */
-    --primary: 160 84% 39%;
-    --primary-foreground: 210 20% 98%;
+    /* Vibrant blue accent - tech aesthetic */
+    --primary: 210 100% 56%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 220 14% 16%;
-    --secondary-foreground: 210 20% 98%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 14% 16%;
-    --muted-foreground: 215 16% 57%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 62%;
 
-    --accent: 160 60% 45%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 210 100% 52%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 72% 51%;
-    --destructive-foreground: 210 20% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 220 14% 18%;
-    --input: 220 14% 14%;
-    --ring: 160 84% 39%;
+    --border: 0 0% 16%;
+    --input: 0 0% 10%;
+    --ring: 210 100% 56%;
 
-    --chart-1: 160 84% 39%;
+    --chart-1: 210 100% 56%;
     --chart-2: 180 70% 45%;
     --chart-3: 140 70% 50%;
     --chart-4: 200 80% 55%;
     --chart-5: 280 75% 55%;
 
     /* Custom vault colors */
-    --vault-glow: 160 84% 39%;
-    --vault-surface: 220 18% 12%;
-    --vault-border: 220 14% 22%;
+    --vault-glow: 210 100% 56%;
+    --vault-surface: 0 0% 10%;
+    --vault-border: 0 0% 18%;
   }
 }
 
@@ -58,14 +58,16 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: "Outfit", system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Custom scrollbar */
+  /* Refined scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 10px;
+    height: 10px;
   }
 
   ::-webkit-scrollbar-track {
@@ -73,70 +75,87 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/20 rounded-full;
+    @apply bg-muted-foreground/25 rounded-full;
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/30;
+    @apply bg-muted-foreground/40;
   }
 }
 
 @layer components {
-  /* Glassmorphism effect */
+  /* Rich glass effect with depth */
   .glass {
-    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+    @apply bg-card/60 backdrop-blur-2xl border border-border/40;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   }
 
   .glass-hover {
-    @apply hover:bg-white/10 transition-all duration-300;
+    @apply hover:bg-card/70 transition-all duration-300;
   }
 
-  /* Vault card glow effect */
-  .vault-glow {
-    box-shadow: 0 0 60px -12px hsl(var(--primary) / 0.2);
-  }
-
-  .vault-glow-sm {
-    box-shadow: 0 0 30px -8px hsl(var(--primary) / 0.15);
-  }
-
-  /* Gradient backgrounds */
-  .gradient-mesh {
-    background: radial-gradient(
-        at 0% 0%,
-        hsl(160 84% 39% / 0.08) 0px,
-        transparent 50%
-      ),
-      radial-gradient(at 100% 0%, hsl(200 80% 50% / 0.06) 0px, transparent 50%),
-      radial-gradient(
-        at 100% 100%,
-        hsl(280 70% 50% / 0.04) 0px,
-        transparent 50%
-      ),
-      radial-gradient(at 0% 100%, hsl(160 60% 45% / 0.06) 0px, transparent 50%);
-  }
-
-  .gradient-radial {
-    background: radial-gradient(
-      ellipse at center,
-      hsl(var(--primary) / 0.08) 0%,
-      transparent 70%
+  /* Subtle gradient overlays for depth */
+  .gradient-overlay {
+    background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0.05) 0%,
+      rgba(139, 92, 246, 0.03) 100%
     );
   }
 
-  /* Animated gradient border */
-  .animated-border {
-    position: relative;
-    background: linear-gradient(hsl(var(--card)), hsl(var(--card))) padding-box,
-      linear-gradient(
-          135deg,
-          hsl(var(--primary)),
-          hsl(200 80% 50%),
-          hsl(var(--primary))
-        )
-        border-box;
-    border: 1px solid transparent;
+  /* Refined shadow system */
+  .shadow-elevated {
+    box-shadow: 
+      0 1px 3px 0 rgba(0, 0, 0, 0.4),
+      0 4px 12px 0 rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
   }
+
+  .shadow-interactive {
+    box-shadow: 
+      0 2px 8px 0 rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+      0 0 0 0 rgba(59, 130, 246, 0);
+    transition: box-shadow 0.3s ease;
+  }
+
+  .shadow-interactive:hover {
+    box-shadow: 
+      0 4px 16px 0 rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+      0 0 20px 0 rgba(59, 130, 246, 0.15);
+  }
+
+  /* Premium border glow */
+  .border-glow {
+    position: relative;
+  }
+
+  .border-glow::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0.3),
+      rgba(139, 92, 246, 0.2),
+      rgba(59, 130, 246, 0.3)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .border-glow:hover::before {
+    opacity: 1;
+  }
+
 
   /* Shimmer effect for loading */
   @keyframes shimmer {
@@ -245,10 +264,10 @@
 
 @layer utilities {
   .text-gradient {
-    @apply bg-gradient-to-r from-emerald-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent;
+    @apply text-primary;
   }
 
   .text-gradient-gold {
-    @apply bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 bg-clip-text text-transparent;
+    @apply text-amber-400;
   }
 }

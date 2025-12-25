@@ -46,18 +46,18 @@ const ValueCard = ({
     isEncrypted && !show ? value?.toString().replace(/./g, "•") : value;
 
   return (
-    <div className="group animate-fade-in">
+    <div className="group">
       {/* Label */}
-      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 block">
+      <label className="text-xs font-medium text-muted-foreground mb-2 block">
         {label}
       </label>
 
       {value || isEditable ? (
         <div
           className={cn(
-            "relative rounded-xl border border-border/50 bg-card/50 overflow-hidden transition-all duration-200",
-            "hover:border-border hover:bg-card",
-            isEditable && "border-primary/30 bg-primary/5"
+            "relative rounded-lg border border-border bg-card/80 overflow-hidden transition-all duration-200 shadow-sm",
+            "hover:border-border/80 hover:bg-card hover:shadow-md",
+            isEditable && "border-primary/50 shadow-md shadow-primary/5"
           )}
         >
           {/* Value display/input */}
@@ -68,7 +68,7 @@ const ValueCard = ({
                 onChange={(e) => handleChange(id, e.target.value)}
                 placeholder={`Enter ${label.toLowerCase()}`}
                 className={cn(
-                  "w-full bg-transparent px-4 py-3 text-sm outline-none resize-none",
+                  "w-full bg-transparent px-3 py-2.5 text-sm outline-none resize-none",
                   "placeholder:text-muted-foreground/50",
                   className
                 )}
@@ -81,7 +81,7 @@ const ValueCard = ({
                 onChange={(e) => handleChange(id, e.target.value)}
                 placeholder={`Enter ${label.toLowerCase()}`}
                 className={cn(
-                  "w-full bg-transparent px-4 py-3 text-sm outline-none pr-24",
+                  "w-full bg-transparent px-3 py-2.5 text-sm outline-none pr-20",
                   "placeholder:text-muted-foreground/50"
                 )}
               />
@@ -89,7 +89,7 @@ const ValueCard = ({
           ) : (
             <div
               className={cn(
-                "px-4 py-3 text-sm text-foreground pr-24",
+                "px-3 py-2.5 text-sm text-foreground pr-20",
                 multiline && "whitespace-pre-wrap",
                 className
               )}
@@ -109,8 +109,8 @@ const ValueCard = ({
                     <button
                       onClick={() => setShow(!show)}
                       className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-                        "text-muted-foreground hover:text-foreground hover:bg-secondary/50",
+                        "w-7 h-7 rounded-md flex items-center justify-center transition-all duration-200",
+                        "text-muted-foreground hover:text-foreground hover:bg-card hover:shadow-sm",
                         // Always visible on mobile (md:), hover-based on desktop
                         "opacity-100 md:opacity-0 md:group-hover:opacity-100",
                         show && "!opacity-100 text-primary"
@@ -133,8 +133,8 @@ const ValueCard = ({
                     <button
                       onClick={copyToClipboard}
                       className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-                        "text-muted-foreground hover:text-foreground hover:bg-secondary/50",
+                        "w-7 h-7 rounded-md flex items-center justify-center transition-all",
+                        "text-muted-foreground hover:text-foreground hover:bg-card/80",
                         // Always visible on mobile (md:), hover-based on desktop
                         "opacity-100 md:opacity-0 md:group-hover:opacity-100",
                         copied && "!opacity-100 text-primary"
@@ -161,8 +161,8 @@ const ValueCard = ({
                   <button
                     onClick={copyToClipboard}
                     className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center transition-all",
-                      "text-muted-foreground hover:text-foreground hover:bg-secondary/50",
+                      "w-7 h-7 rounded-md flex items-center justify-center transition-all",
+                      "text-muted-foreground hover:text-foreground hover:bg-card/80",
                       // Always visible on mobile (md:), hover-based on desktop
                       "opacity-100 md:opacity-0 md:group-hover:opacity-100",
                       copied && "!opacity-100 text-primary"
@@ -181,8 +181,8 @@ const ValueCard = ({
           )}
         </div>
       ) : (
-        <div className="px-4 py-3 rounded-xl border border-border/30 bg-card/30">
-          <span className="text-sm text-muted-foreground italic">Not set</span>
+        <div className="px-3 py-2.5 rounded-lg border border-border bg-card">
+          <span className="text-sm text-muted-foreground">Not set</span>
         </div>
       )}
     </div>

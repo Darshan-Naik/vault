@@ -22,12 +22,12 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-11 w-full items-center justify-between whitespace-nowrap rounded-xl",
-      "border border-border/50 bg-card/50 px-4 py-2 text-sm",
-      "shadow-sm ring-offset-background transition-all duration-200",
+      "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-lg",
+      "border border-border bg-card px-3 py-2 text-sm",
+      "ring-offset-background transition-colors duration-150",
       "placeholder:text-muted-foreground/60",
-      "hover:border-border hover:bg-card",
-      "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50",
+      "hover:border-border/80",
+      "focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary",
       "disabled:cursor-not-allowed disabled:opacity-50",
       "[&>span]:line-clamp-1",
       className
@@ -85,8 +85,8 @@ const SelectContent = React.forwardRef<
     <SelectPrimitive.Content
       ref={ref}
       className={cn(
-        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-xl",
-        "border border-border/50 bg-card text-popover-foreground shadow-xl shadow-black/20",
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-lg",
+        "border border-border bg-card text-popover-foreground shadow-elevated",
         "data-[state=open]:animate-in data-[state=closed]:animate-out",
         "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
         "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",

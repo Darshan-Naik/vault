@@ -128,11 +128,11 @@ export default function LockSettingsDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
-              <Lock className="w-5 h-5 text-primary" />
+            <div className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center">
+              <Lock className="w-4 h-4 text-foreground" />
             </div>
             <div>
-              <DialogTitle className="text-xl">
+              <DialogTitle className="text-lg">
                 {hasLockKey ? "Update PIN" : "Set Lock PIN"}
               </DialogTitle>
               <DialogDescription className="text-sm">
@@ -146,7 +146,7 @@ export default function LockSettingsDialog({
 
         <div className="space-y-6 py-4">
           <div className="space-y-3">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-center block">
+            <label className="text-xs font-medium text-muted-foreground text-center block">
               {hasLockKey ? "New PIN" : "Enter PIN"}
             </label>
             <PinInput
@@ -160,7 +160,7 @@ export default function LockSettingsDialog({
           </div>
 
           <div className="space-y-3">
-            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide text-center block">
+            <label className="text-xs font-medium text-muted-foreground text-center block">
               Confirm PIN
             </label>
             <PinInput
@@ -182,19 +182,19 @@ export default function LockSettingsDialog({
 
           {/* Biometric toggle - only show when PIN is already set */}
           {hasLockKey && isBiometricAvailable && (
-            <div className="pt-4 border-t border-border/50">
+            <div className="pt-4 border-t border-border">
               <button
                 type="button"
                 onClick={handleToggleBiometric}
                 disabled={isBiometricLoading}
-                className="w-full flex items-center justify-between p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-between p-3 rounded-lg bg-card border border-border hover:bg-card/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center">
                     {isFaceId ? (
-                      <Scan className="w-5 h-5 text-primary" />
+                      <Scan className="w-4 h-4 text-foreground" />
                     ) : (
-                      <Fingerprint className="w-5 h-5 text-primary" />
+                      <Fingerprint className="w-4 h-4 text-foreground" />
                     )}
                   </div>
                   <div className="text-left">
