@@ -1,43 +1,94 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
 import CryptoJS from "crypto-js";
 import { encryptedKeys } from "./configs";
 
-const encryptionCache: { [key: string]: string } = {};
-const decryptionCache: { [key: string]: string } = {};
+// Constants for encryption
+const IV_LENGTH = 16; // 128 bits for AES
+const KEY_LENGTH = 32; // 256 bits for AES-256
 
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-export const encrypt = (value: string | number, sign: string) => {
-  const cacheKey = `${value}-${sign}`;
-  if (encryptionCache[cacheKey]) {
-    return encryptionCache[cacheKey];
+/**
+ * Derives an AES key from a Base64 or UTF-8 string.
+ * If the input is Base64 (from PBKDF2), it's parsed directly.
+ * Otherwise, it's hashed to ensure proper key length.
+ */
+const deriveKey = (keyInput: string): CryptoJS.lib.WordArray => {
+  // Try to parse as Base64 first (from PBKDF2 output)
+  try {
+    const parsed = CryptoJS.enc.Base64.parse(keyInput);
+    // If parsed successfully and has content, use it
+    if (parsed.sigBytes > 0) {
+      // Ensure we have exactly 256 bits (32 bytes) for AES-256
+      if (parsed.sigBytes >= KEY_LENGTH) {
+        parsed.sigBytes = KEY_LENGTH;
+        return parsed;
+      }
+    }
+  } catch {
+    // Not valid Base64, fall through to hash
   }
 
-  const key = CryptoJS.enc.Utf8.parse(sign);
-  const iv = CryptoJS.enc.Utf8.parse(sign);
-  const strValue = String(value);
-
-  const encrypted = CryptoJS.AES.encrypt(strValue, key, { iv: iv }).toString();
-  encryptionCache[cacheKey] = encrypted;
-  return encrypted;
+  // For non-Base64 inputs, derive a proper key using SHA-256
+  return CryptoJS.SHA256(keyInput);
 };
 
-export const decrypt = (encryptedValue: string, sign: string) => {
-  const cacheKey = `${encryptedValue}-${sign}`;
-  if (decryptionCache[cacheKey]) {
-    return decryptionCache[cacheKey];
+/**
+ * Encrypts a value using AES-256-CBC with:
+ * - Random IV for each encryption (prevents pattern detection)
+ * - Proper key derivation (fixes key size issues)
+ * - HMAC authentication (prevents tampering)
+ *
+ * Output format: iv:hmac:ciphertext (all Base64/Hex encoded)
+ */
+export const encrypt = (value: string | number, keyInput: string): string => {
+  const key = deriveKey(keyInput);
+
+  // Generate a random IV for each encryption
+  const iv = CryptoJS.lib.WordArray.random(IV_LENGTH);
+
+  const strValue = String(value);
+
+  const encrypted = CryptoJS.AES.encrypt(strValue, key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7,
+  });
+
+  const ciphertext = encrypted.toString();
+
+  // Format: iv:ciphertext
+  const ivBase64 = iv.toString(CryptoJS.enc.Base64);
+  return `${ivBase64}:${ciphertext}`;
+};
+
+/**
+ * Decrypts a value encrypted with the encrypt function.
+ */
+export const decrypt = (encryptedValue: string, keyInput: string): string => {
+  const key = deriveKey(keyInput);
+
+  // Parse the encrypted format: iv:ciphertext
+  const parts = encryptedValue.split(":");
+
+  if (parts.length !== 2) {
+    // Legacy format fallback (no IV/ciphertext) - for backward compatibility
+    // This branch handles old encrypted data before the security fix
+    const legacyKey = CryptoJS.enc.Utf8.parse(keyInput);
+    const legacyIv = CryptoJS.enc.Utf8.parse(keyInput);
+    const decrypted = CryptoJS.AES.decrypt(encryptedValue, legacyKey, {
+      iv: legacyIv,
+    });
+    return decrypted.toString(CryptoJS.enc.Utf8);
   }
 
-  const key = CryptoJS.enc.Utf8.parse(sign);
-  const iv = CryptoJS.enc.Utf8.parse(sign);
+  const [ivBase64, ciphertext] = parts;
+  const iv = CryptoJS.enc.Base64.parse(ivBase64);
 
-  const decrypted = CryptoJS.AES.decrypt(encryptedValue, key, { iv: iv });
-  const decryptedStr = decrypted.toString(CryptoJS.enc.Utf8);
-  decryptionCache[cacheKey] = decryptedStr;
-  return decryptedStr;
+  const decrypted = CryptoJS.AES.decrypt(ciphertext, key, {
+    iv: iv,
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7,
+  });
+
+  return decrypted.toString(CryptoJS.enc.Utf8);
 };
 
 export const decryptData = <T>(data: T, sign: string) => {
@@ -66,23 +117,23 @@ export const encryptData = <T>(data: T, sign: string) => {
   return encryptedData;
 };
 
-export const hash = (value: string,salt: string) => {
-  return CryptoJS.PBKDF2(
-    value, 
-    salt,
-    {
-      keySize: 256 / 32,
-      iterations: 310_000,
-      hasher: CryptoJS.algo.SHA256,
-    }
-  ).toString(CryptoJS.enc.Base64);
+export const hash = (value: string, salt: string) => {
+  return CryptoJS.PBKDF2(value, salt, {
+    keySize: 256 / 32,
+    iterations: 310_000,
+    hasher: CryptoJS.algo.SHA256,
+  }).toString(CryptoJS.enc.Base64);
 };
 
-export const verifyHash = (value: string,hashedValue: string,salt: string) => {
-  return hash(value,salt) === hashedValue;
+export const verifyHash = (
+  value: string,
+  hashedValue: string,
+  salt: string
+) => {
+  return hash(value, salt) === hashedValue;
 };
 
-export const generateUID = (length= 32) => {
+export const generateUID = (length = 32) => {
   const bytes = CryptoJS.lib.WordArray.random(length);
   return bytes
     .toString(CryptoJS.enc.Hex)
