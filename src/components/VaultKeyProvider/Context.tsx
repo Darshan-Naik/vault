@@ -5,6 +5,11 @@ export type SetupResult = {
   masterKey: string;
 };
 
+export type ResetPasswordResult = {
+  masterKey: string;
+  newRecoveryKey: string;
+};
+
 export type VaultKeyContextType = {
   // State
   isLoading: boolean;
@@ -16,7 +21,6 @@ export type VaultKeyContextType = {
   setup: (password: string) => Promise<SetupResult>;
   confirmSetup: (masterKey: string) => Promise<void>; // Called after user saves recovery key
   unlock: (password: string) => Promise<boolean>;
-  unlockWithRecovery: (recoveryKey: string) => Promise<boolean>;
   lock: () => void;
 
   // Password & Recovery Key Management
@@ -25,6 +29,19 @@ export type VaultKeyContextType = {
     newPassword: string
   ) => Promise<boolean>;
   resetRecoveryKey: (password: string) => Promise<string | null>;
+
+  // Password Reset with Recovery Key (forgot password flow)
+  // Returns new recovery key on success, does NOT set master key (user must save recovery key first)
+  resetPasswordWithRecovery: (
+    recoveryKey: string,
+    newPassword: string
+  ) => Promise<ResetPasswordResult | null>;
+
+  // Called after user saves recovery key during password reset flow
+  confirmPasswordReset: (masterKey: string) => void;
+
+  // Validate recovery key without unlocking
+  validateRecoveryKey: (recoveryKey: string) => Promise<boolean>;
 };
 
 export const VaultKeyContext = createContext<VaultKeyContextType>({
@@ -35,8 +52,10 @@ export const VaultKeyContext = createContext<VaultKeyContextType>({
   setup: async () => ({ recoveryKey: "", masterKey: "" }),
   confirmSetup: async () => {},
   unlock: async () => false,
-  unlockWithRecovery: async () => false,
   lock: () => {},
   changePassword: async () => false,
   resetRecoveryKey: async () => null,
+  resetPasswordWithRecovery: async () => null,
+  confirmPasswordReset: () => {},
+  validateRecoveryKey: async () => false,
 });

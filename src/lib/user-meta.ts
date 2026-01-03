@@ -109,13 +109,13 @@ export async function unlockWithPassword(
 }
 
 /**
- * Unlock vault using recovery key
- * Returns master key if successful, null otherwise
+ * Validate recovery key without unlocking
+ * Returns true if the recovery key is valid, false otherwise
  */
-export async function unlockWithRecoveryKey(
+export async function validateRecoveryKey(
   userMeta: TUserMeta,
   recoveryKey: string
-): Promise<string | null> {
+): Promise<boolean> {
   try {
     // Hash the recovery key
     const hashedRecoveryKey = await hashPassword(
@@ -133,13 +133,9 @@ export async function unlockWithRecoveryKey(
     // Verify decryption by checking the encrypted user ID
     const decryptedUserId = decrypt(userMeta.encryptedUserID, masterKey);
 
-    if (decryptedUserId === userMeta.userId) {
-      return masterKey;
-    }
-
-    return null;
+    return decryptedUserId === userMeta.userId;
   } catch {
-    return null;
+    return false;
   }
 }
 
@@ -229,4 +225,81 @@ export async function resetRecoveryKey(
   );
 
   return newRecoveryKey;
+}
+
+/**
+ * Reset password using recovery key (forgot password flow)
+ * This is a one-time use operation - the old recovery key becomes invalid
+ *
+ * Steps:
+ * 1. Validate recovery key and get master key
+ * 2. Wrap master key with new password hash
+ * 3. Generate new recovery key and wrap master key with it
+ * 4. Update both in Firestore
+ *
+ * Returns: { masterKey, newRecoveryKey } on success, null on failure
+ */
+export async function resetPasswordWithRecovery(
+  userMeta: TUserMeta,
+  recoveryKey: string,
+  newPassword: string
+): Promise<{ masterKey: string; newRecoveryKey: string } | null> {
+  try {
+    // Step 1: Validate recovery key and get master key
+    const hashedRecoveryKey = await hashPassword(
+      recoveryKey,
+      userMeta.userId,
+      userMeta.salt
+    );
+
+    const masterKey = unwrapMasterKey(
+      userMeta.encryptedMasterKeyByRecoveryKey,
+      hashedRecoveryKey
+    );
+
+    // Verify decryption by checking the encrypted user ID
+    const decryptedUserId = decrypt(userMeta.encryptedUserID, masterKey);
+    if (decryptedUserId !== userMeta.userId) {
+      return null;
+    }
+
+    // Step 2: Wrap master key with new password hash
+    const hashedNewPassword = await hashPassword(
+      newPassword,
+      userMeta.userId,
+      userMeta.salt
+    );
+    const encryptedMasterKeyByPassword = wrapMasterKey(
+      masterKey,
+      hashedNewPassword
+    );
+
+    // Step 3: Generate new recovery key and wrap master key with it
+    const newRecoveryKey = generateRecoveryKey();
+    const hashedNewRecoveryKey = await hashPassword(
+      newRecoveryKey,
+      userMeta.userId,
+      userMeta.salt
+    );
+    const encryptedMasterKeyByRecoveryKey = wrapMasterKey(
+      masterKey,
+      hashedNewRecoveryKey
+    );
+
+    // Step 4: Update both in Firestore (atomic update)
+    const docRef = doc(db, USER_META_COLLECTION, userMeta.userId);
+    await setDoc(
+      docRef,
+      {
+        encryptedMasterKeyByPassword,
+        encryptedMasterKeyByRecoveryKey,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    return { masterKey, newRecoveryKey };
+  } catch {
+    return null;
+  }
 }

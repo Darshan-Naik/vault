@@ -6,9 +6,10 @@ import {
   getUserMeta,
   createUserMeta,
   unlockWithPassword,
-  unlockWithRecoveryKey,
   changePassword as changePasswordMeta,
   resetRecoveryKey as resetRecoveryKeyMeta,
+  resetPasswordWithRecovery as resetPasswordWithRecoveryMeta,
+  validateRecoveryKey as validateRecoveryKeyMeta,
 } from "@/lib/user-meta";
 
 export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
@@ -103,23 +104,6 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
     [userMeta]
   );
 
-  // Unlock with recovery key
-  const unlockWithRecovery = useCallback(
-    async (recoveryKey: string): Promise<boolean> => {
-      if (!userMeta) {
-        return false;
-      }
-
-      const key = await unlockWithRecoveryKey(userMeta, recoveryKey);
-      if (key) {
-        setMasterKey(key);
-        return true;
-      }
-      return false;
-    },
-    [userMeta]
-  );
-
   // Lock - clear master key from memory
   const lock = useCallback(() => {
     setMasterKey(null);
@@ -165,6 +149,52 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
     [userMeta]
   );
 
+  // Reset password using recovery key (forgot password flow)
+  // This invalidates the old recovery key and generates a new one
+  // Does NOT set masterKey - user must save new recovery key first, then call confirmPasswordReset
+  const resetPasswordWithRecovery = useCallback(
+    async (
+      recoveryKey: string,
+      newPassword: string
+    ): Promise<{ masterKey: string; newRecoveryKey: string } | null> => {
+      if (!userMeta) {
+        return null;
+      }
+
+      const result = await resetPasswordWithRecoveryMeta(
+        userMeta,
+        recoveryKey,
+        newPassword
+      );
+
+      if (result) {
+        // Reload user metadata but do NOT set master key yet
+        // User must save the new recovery key first
+        const meta = await getUserMeta(userMeta.userId);
+        setUserMeta(meta);
+        return result;
+      }
+      return null;
+    },
+    [userMeta]
+  );
+
+  // Called after user confirms saving their new recovery key during password reset
+  const confirmPasswordReset = useCallback((newMasterKey: string) => {
+    setMasterKey(newMasterKey);
+  }, []);
+
+  // Validate recovery key without unlocking
+  const validateRecoveryKey = useCallback(
+    async (recoveryKey: string): Promise<boolean> => {
+      if (!userMeta) {
+        return false;
+      }
+      return validateRecoveryKeyMeta(userMeta, recoveryKey);
+    },
+    [userMeta]
+  );
+
   // Lock when app goes to background (if PIN lock is not used, this provides basic protection)
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -189,10 +219,12 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
     setup,
     confirmSetup,
     unlock,
-    unlockWithRecovery,
     lock,
     changePassword,
     resetRecoveryKey,
+    resetPasswordWithRecovery,
+    confirmPasswordReset,
+    validateRecoveryKey,
   };
 
   return (
