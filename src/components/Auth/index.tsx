@@ -37,7 +37,7 @@ function Auth() {
               Vault
             </h1>
             <p className="text-sm text-muted-foreground">
-              Your secrets, secured with end-to-end encryption
+              Wallet for all your secrets
             </p>
           </div>
 
@@ -77,9 +77,9 @@ function Auth() {
             )}
           </Button>
 
-          {/* Footer */}
+          {/* Security info */}
           <p className="text-center text-xs text-muted-foreground mt-6">
-            By continuing, you agree to our Terms of Service
+            Your secrets are secured with end-to-end encryption
           </p>
         </div>
       </div>
@@ -87,10 +87,7 @@ function Auth() {
       {/* Error toast */}
       {error && (
         <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96">
-          <Alert
-            variant="destructive"
-            className="bg-card border-destructive"
-          >
+          <Alert variant="destructive" className="bg-card border-destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         </div>

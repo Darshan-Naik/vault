@@ -136,9 +136,7 @@ export default function LockSettingsDialog({
                 {hasLockKey ? "Update PIN" : "Set Lock PIN"}
               </DialogTitle>
               <DialogDescription className="text-sm">
-                {hasLockKey
-                  ? "Set a new 4-digit PIN for your vault"
-                  : "Secure your vault with a 4-digit PIN"}
+                Quick unlock when returning to the app
               </DialogDescription>
             </div>
           </div>
@@ -224,6 +222,15 @@ export default function LockSettingsDialog({
               </button>
             </div>
           )}
+
+          {/* Info box */}
+          <div className="p-3 rounded-lg bg-muted/50 border border-border">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Your vault automatically locks when you leave the app. Use this
+              PIN for quick unlock instead of entering your full password each
+              time.
+            </p>
+          </div>
 
           {/* Security note */}
           <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
