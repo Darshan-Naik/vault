@@ -4,7 +4,7 @@ import { Key, Copy, Check, AlertTriangle, Timer } from "lucide-react";
 
 type Props = {
   recoveryKey: string;
-  onComplete: () => void;
+  onComplete: () => Promise<void>;
 };
 
 const LOCK_DURATION = 60; // 60 seconds
@@ -14,6 +14,7 @@ function RecoveryKeyStep({ recoveryKey, onComplete }: Props) {
   const [confirmed, setConfirmed] = useState(false);
   const [countdown, setCountdown] = useState(LOCK_DURATION);
   const [isLocked, setIsLocked] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Countdown timer - locks the screen for 60 seconds
   useEffect(() => {
@@ -47,13 +48,22 @@ function RecoveryKeyStep({ recoveryKey, onComplete }: Props) {
     }
   };
 
+  const handleComplete = async () => {
+    setIsLoading(true);
+    try {
+      await onComplete();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const canContinue = !isLocked && confirmed;
+  const canContinue = !isLocked && confirmed && !isLoading;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
@@ -148,11 +158,16 @@ function RecoveryKeyStep({ recoveryKey, onComplete }: Props) {
 
           {/* Continue button */}
           <Button
-            onClick={onComplete}
+            onClick={handleComplete}
             disabled={!canContinue}
             className="w-full h-10"
           >
-            {isLocked ? (
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                <span>Setting up...</span>
+              </div>
+            ) : isLocked ? (
               <div className="flex items-center gap-2">
                 <Timer className="w-4 h-4" />
                 <span>Wait {formatTime(countdown)}</span>

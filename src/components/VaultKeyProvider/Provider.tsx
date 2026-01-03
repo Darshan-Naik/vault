@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { VaultKeyContext } from "./Context";
+import { VaultKeyContext, SetupResult } from "./Context";
 import { useAuth } from "../AuthProvider";
 import { TUserMeta } from "@/lib/types";
 import {
@@ -52,8 +52,9 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   // Setup - create new user vault with password
+  // Returns recovery key and master key, but doesn't set state yet
   const setup = useCallback(
-    async (password: string): Promise<{ recoveryKey: string }> => {
+    async (password: string): Promise<SetupResult> => {
       if (!user?.uid) {
         throw new Error("User must be authenticated to setup vault");
       }
@@ -63,12 +64,24 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
         password
       );
 
-      // Reload user metadata
+      // Return the keys but don't set state yet
+      // State will be set when user confirms they saved the recovery key
+      return { recoveryKey, masterKey: newMasterKey };
+    },
+    [user?.uid]
+  );
+
+  // Confirm setup - called after user saves recovery key
+  const confirmSetup = useCallback(
+    async (newMasterKey: string): Promise<void> => {
+      if (!user?.uid) {
+        throw new Error("User must be authenticated to confirm setup");
+      }
+
+      // Now load the metadata and set the master key
       const meta = await getUserMeta(user.uid);
       setUserMeta(meta);
       setMasterKey(newMasterKey);
-
-      return { recoveryKey };
     },
     [user?.uid]
   );
@@ -174,6 +187,7 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
     isUnlocked: !!masterKey,
     masterKey,
     setup,
+    confirmSetup,
     unlock,
     unlockWithRecovery,
     lock,

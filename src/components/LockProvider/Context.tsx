@@ -4,6 +4,7 @@ export const LockContext = createContext<{
   isLocked: boolean;
   unlock: (key: string) => boolean;
   lock: () => void;
+  bypassLock: () => void; // Bypass lock after password unlock
   hasLockKey: boolean;
   setLockKey: (key: string) => Promise<void>;
   updateLockKey: (oldKey: string, newKey: string) => Promise<boolean>;
@@ -18,6 +19,7 @@ export const LockContext = createContext<{
   isLocked: false,
   unlock: () => false,
   lock: () => {},
+  bypassLock: () => {},
   hasLockKey: false,
   setLockKey: async () => {},
   updateLockKey: async () => false,

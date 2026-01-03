@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useVaultKey } from "../VaultKeyProvider";
+import { useLock } from "../LockProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +18,7 @@ type Mode = "password" | "recovery";
 
 function VaultUnlockScreen() {
   const { unlock, unlockWithRecovery } = useVaultKey();
+  const { bypassLock } = useLock();
 
   const [mode, setMode] = useState<Mode>("password");
   const [password, setPassword] = useState("");
@@ -36,7 +38,10 @@ function VaultUnlockScreen() {
           ? await unlock(password)
           : await unlockWithRecovery(recoveryKey.trim());
 
-      if (!success) {
+      if (success) {
+        // Bypass PIN lock since user just authenticated with password
+        bypassLock();
+      } else {
         setError(
           mode === "password"
             ? "Incorrect password. Please try again."

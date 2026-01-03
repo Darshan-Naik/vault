@@ -78,6 +78,11 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     setIsLocked(true);
   }, []);
 
+  // Bypass lock - used after password unlock to skip PIN for this session
+  const bypassLock = useCallback(() => {
+    setIsLocked(false);
+  }, []);
+
   const setLockKey = useCallback(
     async (key: string) => {
       if (!user?.uid) {
@@ -243,6 +248,7 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     isLocked,
     unlock,
     lock,
+    bypassLock,
     hasLockKey: hasLockKey(),
     setLockKey,
     updateLockKey,

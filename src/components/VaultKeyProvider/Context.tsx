@@ -1,5 +1,10 @@
 import { createContext } from "react";
 
+export type SetupResult = {
+  recoveryKey: string;
+  masterKey: string;
+};
+
 export type VaultKeyContextType = {
   // State
   isLoading: boolean;
@@ -8,7 +13,8 @@ export type VaultKeyContextType = {
   masterKey: string | null;
 
   // Actions
-  setup: (password: string) => Promise<{ recoveryKey: string }>;
+  setup: (password: string) => Promise<SetupResult>;
+  confirmSetup: (masterKey: string) => Promise<void>; // Called after user saves recovery key
   unlock: (password: string) => Promise<boolean>;
   unlockWithRecovery: (recoveryKey: string) => Promise<boolean>;
   lock: () => void;
@@ -26,7 +32,8 @@ export const VaultKeyContext = createContext<VaultKeyContextType>({
   isSetup: false,
   isUnlocked: false,
   masterKey: null,
-  setup: async () => ({ recoveryKey: "" }),
+  setup: async () => ({ recoveryKey: "", masterKey: "" }),
+  confirmSetup: async () => {},
   unlock: async () => false,
   unlockWithRecovery: async () => false,
   lock: () => {},

@@ -6,20 +6,24 @@ import RecoveryKeyStep from "./RecoveryKeyStep";
 type Step = "password" | "recovery";
 
 function SetupScreen() {
-  const { setup } = useVaultKey();
+  const { setup, confirmSetup } = useVaultKey();
 
   const [step, setStep] = useState<Step>("password");
   const [recoveryKey, setRecoveryKey] = useState("");
+  const [masterKey, setMasterKey] = useState("");
 
   const handlePasswordSetup = async (password: string) => {
     const result = await setup(password);
+    // Store keys temporarily - state won't be set until user confirms
     setRecoveryKey(result.recoveryKey);
+    setMasterKey(result.masterKey);
     setStep("recovery");
   };
 
-  const handleRecoveryComplete = () => {
-    // The vault is already unlocked after setup, this just closes the recovery screen
-    // The App component will detect isUnlocked and show Main
+  const handleRecoveryComplete = async () => {
+    // Now that user has saved their recovery key, confirm the setup
+    // This sets userMeta and masterKey in the provider
+    await confirmSetup(masterKey);
   };
 
   if (step === "recovery") {
