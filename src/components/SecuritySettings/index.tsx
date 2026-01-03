@@ -118,6 +118,7 @@ function SecuritySettings({ open, onOpenChange }: Props) {
     }
 
     setIsChangingPassword(true);
+
     try {
       const success = await changePassword(oldPassword, newPassword);
       if (success) {
@@ -138,6 +139,7 @@ function SecuritySettings({ open, onOpenChange }: Props) {
     setRecoveryError("");
 
     setIsResettingRecovery(true);
+
     try {
       const newKey = await resetRecoveryKey(recoveryPassword);
       if (newKey) {

@@ -37,6 +37,7 @@ function PasswordSetupStep({ onSetup }: Props) {
     }
 
     setIsLoading(true);
+
     try {
       await onSetup(password);
     } catch (err) {
@@ -151,7 +152,8 @@ function PasswordSetupStep({ onSetup }: Props) {
 
           {/* Info */}
           <p className="text-xs text-center text-muted-foreground mt-6">
-            Your password never leaves your device. We use this for data encryption.
+            Your password never leaves your device. We use this for data
+            encryption.
           </p>
         </div>
       </div>
@@ -160,4 +162,3 @@ function PasswordSetupStep({ onSetup }: Props) {
 }
 
 export default PasswordSetupStep;
-

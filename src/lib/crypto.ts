@@ -110,7 +110,47 @@ export const encryptData = <T>(data: T, sign: string) => {
   return encryptedData;
 };
 
-export const hash = (value: string, salt: string) => {
+/**
+ * PBKDF2 hash using Web Crypto API (async, non-blocking)
+ * Falls back to CryptoJS if Web Crypto is not available
+ */
+export const hash = async (value: string, salt: string): Promise<string> => {
+  // Use native Web Crypto API for non-blocking PBKDF2
+  if (typeof window !== "undefined" && window.crypto?.subtle) {
+    try {
+      const encoder = new TextEncoder();
+      const keyMaterial = await window.crypto.subtle.importKey(
+        "raw",
+        encoder.encode(value),
+        "PBKDF2",
+        false,
+        ["deriveBits"]
+      );
+
+      const derivedBits = await window.crypto.subtle.deriveBits(
+        {
+          name: "PBKDF2",
+          salt: encoder.encode(salt),
+          iterations: 310_000,
+          hash: "SHA-256",
+        },
+        keyMaterial,
+        256 // 256 bits = 32 bytes
+      );
+
+      // Convert to Base64
+      const bytes = new Uint8Array(derivedBits);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    } catch {
+      // Fall back to CryptoJS if Web Crypto fails
+    }
+  }
+
+  // Fallback to synchronous CryptoJS
   return CryptoJS.PBKDF2(value, salt, {
     keySize: 256 / 32,
     iterations: 310_000,
@@ -118,12 +158,13 @@ export const hash = (value: string, salt: string) => {
   }).toString(CryptoJS.enc.Base64);
 };
 
-export const verifyHash = (
+export const verifyHash = async (
   value: string,
   hashedValue: string,
   salt: string
-) => {
-  return hash(value, salt) === hashedValue;
+): Promise<boolean> => {
+  const computed = await hash(value, salt);
+  return computed === hashedValue;
 };
 
 export const generateUID = (length = 32) => {

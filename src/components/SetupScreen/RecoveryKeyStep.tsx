@@ -50,6 +50,7 @@ function RecoveryKeyStep({ recoveryKey, onComplete }: Props) {
 
   const handleComplete = async () => {
     setIsLoading(true);
+
     try {
       await onComplete();
     } finally {
