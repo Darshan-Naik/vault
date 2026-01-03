@@ -9,13 +9,15 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { auth } from "@/firebase";
-import { Shield, LogOut, Settings, ChevronDown } from "lucide-react";
+import { Shield, LogOut, Settings, ChevronDown, KeyRound } from "lucide-react";
 import LockSettingsDialog, { ButtonLabel } from "@/components/LockSettings/Dialog";
+import SecuritySettings from "@/components/SecuritySettings";
 
 const Header = () => {
   const { user } = useAuth();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [lockDialogOpen, setLockDialogOpen] = useState(false);
+  const [securityDialogOpen, setSecurityDialogOpen] = useState(false);
 
   const handleSignOut = () => {
     signOut(auth);
@@ -24,6 +26,11 @@ const Header = () => {
   const handleLockSettingsClick = () => {
     setPopoverOpen(false);
     setLockDialogOpen(true);
+  };
+
+  const handleSecuritySettingsClick = () => {
+    setPopoverOpen(false);
+    setSecurityDialogOpen(true);
   };
 
   return (
@@ -84,6 +91,15 @@ const Header = () => {
                 <Button
                   variant="ghost"
                   className="w-full justify-start gap-2.5 h-9 px-2.5 text-sm"
+                  onClick={handleSecuritySettingsClick}
+                >
+                  <KeyRound className="w-4 h-4" />
+                  Security Settings
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-2.5 h-9 px-2.5 text-sm"
                   onClick={handleLockSettingsClick}
                 >
                   <Settings className="w-4 h-4" />
@@ -107,6 +123,7 @@ const Header = () => {
       </header>
       
       <LockSettingsDialog open={lockDialogOpen} onOpenChange={setLockDialogOpen} />
+      <SecuritySettings open={securityDialogOpen} onOpenChange={setSecurityDialogOpen} />
     </>
   );
 };

@@ -7,6 +7,8 @@ import {
   createUserMeta,
   unlockWithPassword,
   unlockWithRecoveryKey,
+  changePassword as changePasswordMeta,
+  resetRecoveryKey as resetRecoveryKeyMeta,
 } from "@/lib/user-meta";
 
 export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
@@ -110,6 +112,46 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
     setMasterKey(null);
   }, []);
 
+  // Change password (requires old password)
+  const changePassword = useCallback(
+    async (oldPassword: string, newPassword: string): Promise<boolean> => {
+      if (!userMeta) {
+        return false;
+      }
+
+      const success = await changePasswordMeta(
+        userMeta,
+        oldPassword,
+        newPassword
+      );
+      if (success) {
+        // Reload user metadata to get the updated encrypted key
+        const meta = await getUserMeta(userMeta.userId);
+        setUserMeta(meta);
+      }
+      return success;
+    },
+    [userMeta]
+  );
+
+  // Reset recovery key (requires password)
+  const resetRecoveryKey = useCallback(
+    async (password: string): Promise<string | null> => {
+      if (!userMeta) {
+        return null;
+      }
+
+      const newRecoveryKey = await resetRecoveryKeyMeta(userMeta, password);
+      if (newRecoveryKey) {
+        // Reload user metadata to get the updated encrypted key
+        const meta = await getUserMeta(userMeta.userId);
+        setUserMeta(meta);
+      }
+      return newRecoveryKey;
+    },
+    [userMeta]
+  );
+
   // Lock when app goes to background (if PIN lock is not used, this provides basic protection)
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -135,6 +177,8 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
     unlock,
     unlockWithRecovery,
     lock,
+    changePassword,
+    resetRecoveryKey,
   };
 
   return (
