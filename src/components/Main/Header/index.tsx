@@ -9,15 +9,26 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { auth } from "@/firebase";
-import { Shield, LogOut, Settings, ChevronDown, KeyRound } from "lucide-react";
-import LockSettingsDialog, { ButtonLabel } from "@/components/LockSettings/Dialog";
+import {
+  Shield,
+  LogOut,
+  Settings,
+  ChevronDown,
+  KeyRound,
+  ShieldCheck,
+} from "lucide-react";
+import LockSettingsDialog, {
+  ButtonLabel,
+} from "@/components/LockSettings/Dialog";
 import SecuritySettings from "@/components/SecuritySettings";
+import SecurityInfo from "@/components/SecurityInfo";
 
 const Header = () => {
   const { user } = useAuth();
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [lockDialogOpen, setLockDialogOpen] = useState(false);
   const [securityDialogOpen, setSecurityDialogOpen] = useState(false);
+  const [securityInfoOpen, setSecurityInfoOpen] = useState(false);
 
   const handleSignOut = () => {
     signOut(auth);
@@ -33,6 +44,11 @@ const Header = () => {
     setSecurityDialogOpen(true);
   };
 
+  const handleSecurityInfoClick = () => {
+    setPopoverOpen(false);
+    setSecurityInfoOpen(true);
+  };
+
   return (
     <>
       <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/90 backdrop-blur-2xl shadow-sm">
@@ -42,9 +58,11 @@ const Header = () => {
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shadow-sm">
               <Shield className="h-4 w-4 text-primary" />
             </div>
-            <span className="text-base font-semibold text-foreground tracking-tight">Vault</span>
+            <span className="text-base font-semibold text-foreground tracking-tight">
+              Vault
+            </span>
           </div>
-          
+
           {/* User menu */}
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
@@ -61,8 +79,11 @@ const Header = () => {
                 <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
               </button>
             </PopoverTrigger>
-            
-            <PopoverContent className="w-64 p-1 bg-card border-border shadow-elevated" align="end">
+
+            <PopoverContent
+              className="w-64 p-1 bg-card border-border shadow-elevated"
+              align="end"
+            >
               {/* User info header */}
               <div className="px-3 py-2.5 border-b border-border">
                 <div className="flex items-center gap-3">
@@ -85,7 +106,7 @@ const Header = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Menu items */}
               <div className="p-1">
                 <Button
@@ -105,9 +126,18 @@ const Header = () => {
                   <Settings className="w-4 h-4" />
                   <ButtonLabel />
                 </Button>
-                
+
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-2.5 h-9 px-2.5 text-sm"
+                  onClick={handleSecurityInfoClick}
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  How Security Works
+                </Button>
+
                 <div className="h-px bg-border my-1" />
-                
+
                 <Button
                   onClick={handleSignOut}
                   variant="ghost"
@@ -121,9 +151,19 @@ const Header = () => {
           </Popover>
         </div>
       </header>
-      
-      <LockSettingsDialog open={lockDialogOpen} onOpenChange={setLockDialogOpen} />
-      <SecuritySettings open={securityDialogOpen} onOpenChange={setSecurityDialogOpen} />
+
+      <LockSettingsDialog
+        open={lockDialogOpen}
+        onOpenChange={setLockDialogOpen}
+      />
+      <SecuritySettings
+        open={securityDialogOpen}
+        onOpenChange={setSecurityDialogOpen}
+      />
+      <SecurityInfo
+        open={securityInfoOpen}
+        onOpenChange={setSecurityInfoOpen}
+      />
     </>
   );
 };

@@ -3,11 +3,13 @@ import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { auth } from "@/firebase";
-import { Shield } from "lucide-react";
+import { Shield, ShieldCheck } from "lucide-react";
+import SecurityInfo from "@/components/SecurityInfo";
 
 function Auth() {
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [securityInfoOpen, setSecurityInfoOpen] = useState(false);
 
   const provider: GoogleAuthProvider = new GoogleAuthProvider();
 
@@ -78,11 +80,23 @@ function Auth() {
           </Button>
 
           {/* Security info */}
-          <p className="text-center text-xs text-muted-foreground mt-6">
-            Your secrets are secured with end-to-end encryption
-          </p>
+          <div className="mt-6 pt-6 border-t border-border">
+            <button
+              type="button"
+              onClick={() => setSecurityInfoOpen(true)}
+              className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>How we protect your data</span>
+            </button>
+          </div>
         </div>
       </div>
+
+      <SecurityInfo
+        open={securityInfoOpen}
+        onOpenChange={setSecurityInfoOpen}
+      />
 
       {/* Error toast */}
       {error && (
