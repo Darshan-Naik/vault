@@ -34,9 +34,8 @@ const deriveKey = (keyInput: string): CryptoJS.lib.WordArray => {
  * Encrypts a value using AES-256-CBC with:
  * - Random IV for each encryption (prevents pattern detection)
  * - Proper key derivation (fixes key size issues)
- * - HMAC authentication (prevents tampering)
  *
- * Output format: iv:hmac:ciphertext (all Base64/Hex encoded)
+ * Output format: iv:ciphertext (all Base64 encoded)
  */
 export const encrypt = (value: string | number, keyInput: string): string => {
   const key = deriveKey(keyInput);
@@ -69,14 +68,8 @@ export const decrypt = (encryptedValue: string, keyInput: string): string => {
   const parts = encryptedValue.split(":");
 
   if (parts.length !== 2) {
-    // Legacy format fallback (no IV/ciphertext) - for backward compatibility
-    // This branch handles old encrypted data before the security fix
-    const legacyKey = CryptoJS.enc.Utf8.parse(keyInput);
-    const legacyIv = CryptoJS.enc.Utf8.parse(keyInput);
-    const decrypted = CryptoJS.AES.decrypt(encryptedValue, legacyKey, {
-      iv: legacyIv,
-    });
-    return decrypted.toString(CryptoJS.enc.Utf8);
+    // Invalid format
+    return "";
   }
 
   const [ivBase64, ciphertext] = parts;

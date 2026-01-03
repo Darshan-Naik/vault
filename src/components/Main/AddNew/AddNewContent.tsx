@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAddVault } from "@/lib/query";
 import { useAuth } from "@/components/AuthProvider";
+import { useVaultKey } from "@/components/VaultKeyProvider";
 import {
   Select,
   SelectContent,
@@ -36,11 +37,18 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
   } as TVault);
   const { mutateAsync: addVault, isPending } = useAddVault();
   const { user } = useAuth();
+  const { masterKey } = useVaultKey();
 
   const handleSubmit = async () => {
+    if (!masterKey) {
+      toast.error("Vault is locked. Please unlock to add items.");
+      return;
+    }
+
     try {
       await addVault({
         userId: user?.uid as string,
+        masterKey: masterKey,
         vaultData: data as TVault,
       });
       handleClose();

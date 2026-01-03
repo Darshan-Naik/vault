@@ -10,11 +10,11 @@ export const queryClient = new QueryClient({
   },
 });
 
-export const useVaults = (userId?: string) => {
+export const useVaults = (userId?: string, masterKey?: string | null) => {
   return useQuery({
-    queryKey: ["vaults"],
-    queryFn: () => getVaults(userId as string),
-    enabled: !!userId,
+    queryKey: ["vaults", userId],
+    queryFn: () => getVaults(userId as string, masterKey as string),
+    enabled: !!userId && !!masterKey,
   });
 };
 

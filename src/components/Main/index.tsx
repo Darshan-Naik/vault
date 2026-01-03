@@ -1,5 +1,6 @@
 import Header from "./Header";
 import { useAuth } from "../AuthProvider";
+import { useVaultKey } from "../VaultKeyProvider";
 import { useVaults } from "@/lib/query";
 import VaultList from "./VaultList";
 import AddNew from "./AddNew";
@@ -15,7 +16,8 @@ const Main = () => {
   const [isEdit, setIsEdit] = useState(false);
 
   const { user } = useAuth();
-  const { data: vaults, isLoading } = useVaults(user?.uid);
+  const { masterKey } = useVaultKey();
+  const { data: vaults, isLoading } = useVaults(user?.uid, masterKey);
 
   const handleVaultSelect = (vault?: TVault, force?: boolean) => {
     if (isEdit && !force) {
@@ -29,7 +31,7 @@ const Main = () => {
   return (
     <div className="h-screen flex flex-col overflow-hidden w-screen bg-background">
       <Header />
-      
+
       <div className="flex-1 flex overflow-hidden relative">
         {/* Sidebar */}
         <aside
@@ -43,7 +45,9 @@ const Main = () => {
           <div className="px-6 py-5 space-y-4 border-b border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-sm font-semibold text-foreground tracking-tight">Vaults</h2>
+                <h2 className="text-sm font-semibold text-foreground tracking-tight">
+                  Vaults
+                </h2>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {vaults?.length || 0} items
                 </p>
@@ -51,7 +55,7 @@ const Main = () => {
             </div>
             <AddNew />
           </div>
-          
+
           {/* Vault list */}
           <div className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
             <VaultList
@@ -62,7 +66,7 @@ const Main = () => {
             />
           </div>
         </aside>
-        
+
         {/* Main content area */}
         {selectedVault ? (
           <main className="flex-1 overflow-hidden">
@@ -81,21 +85,31 @@ const Main = () => {
               <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-card border border-border mb-6">
                 <Shield className="w-8 h-8 text-muted-foreground" />
               </div>
-              
+
               <h3 className="text-lg font-medium text-foreground mb-2">
                 Select a vault
               </h3>
               <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
-                Choose a vault from the sidebar to view its contents, or create a new one to get started.
+                Choose a vault from the sidebar to view its contents, or create
+                a new one to get started.
               </p>
-              
+
               {/* Quick tips */}
               <div className="space-y-4 text-left">
                 {[
-                  { icon: Lock, text: "All data is encrypted before leaving your device" },
-                  { icon: Plus, text: "Add credentials, cards, and bank details" },
+                  {
+                    icon: Lock,
+                    text: "All data is encrypted before leaving your device",
+                  },
+                  {
+                    icon: Plus,
+                    text: "Add credentials, cards, and bank details",
+                  },
                 ].map((tip, i) => (
-                  <div key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 text-sm text-muted-foreground"
+                  >
                     <div className="w-5 h-5 rounded-md bg-card border border-border flex items-center justify-center flex-shrink-0 mt-0.5">
                       <tip.icon className="w-3 h-3 text-foreground" />
                     </div>

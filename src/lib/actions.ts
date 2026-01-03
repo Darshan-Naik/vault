@@ -11,9 +11,9 @@ import {
   orderBy,
 } from "firebase/firestore";
 import { TVault } from "./types";
-import { decryptData, encryptData } from "./utils";
+import { decryptData, encryptData } from "./crypto";
 
-export const getVaults = async (userId: string) => {
+export const getVaults = async (userId: string, masterKey: string) => {
   const vaultCollection = collection(db, "vault-db");
   const userVaultsCollection = doc(vaultCollection, userId);
 
@@ -22,18 +22,18 @@ export const getVaults = async (userId: string) => {
     orderBy("createdAt", "asc")
   );
   const querySnapshot = await getDocs(q);
+
   return querySnapshot.docs
-    .map((doc) => {
-      return { ...doc.data(), id: doc.id };
-    })
-    .map((doc) => decryptData(doc, userId)) as TVault[];
+    .map((doc) => ({ ...doc.data(), id: doc.id }))
+    .map((doc) => decryptData(doc, masterKey)) as TVault[];
 };
 
 export const addVault = async (params: {
   userId: string;
+  masterKey: string;
   vaultData: Omit<TVault, "id">;
 }) => {
-  const data = encryptData(params.vaultData, params.userId);
+  const data = encryptData(params.vaultData, params.masterKey);
   const vaultCollection = collection(db, "vault-db");
   const userVaultsCollection = doc(vaultCollection, params.userId);
   const userVaultsSubCollection = collection(userVaultsCollection, "vaults");
@@ -47,10 +47,11 @@ export const addVault = async (params: {
 
 export const updateVault = async (params: {
   userId: string;
+  masterKey: string;
   vaultId: string;
   vaultData: Partial<TVault>;
 }) => {
-  const data = encryptData(params.vaultData, params.userId);
+  const data = encryptData(params.vaultData, params.masterKey);
 
   const vaultCollection = collection(db, "vault-db");
   const userVaultsCollection = doc(vaultCollection, params.userId);

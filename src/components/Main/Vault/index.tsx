@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import { useUpdateVault } from "@/lib/query";
 import { useAuth } from "@/components/AuthProvider";
+import { useVaultKey } from "@/components/VaultKeyProvider";
 import { toast } from "sonner";
 import DeleteVault from "./DeleteVault";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
   const { mutateAsync: updateVault, isPending } = useUpdateVault();
 
   const { user } = useAuth();
+  const { masterKey } = useVaultKey();
 
   const handleChange = (key: string, value: string) => {
     setVaultData((prevData: TVault | undefined) => {
@@ -37,12 +39,17 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
   };
 
   const handleSave = async () => {
+    if (!masterKey) {
+      toast.error("Vault is locked. Please unlock to save changes.");
+      return;
+    }
+
     try {
       await updateVault({
         userId: user?.uid as string,
+        masterKey: masterKey,
         vaultId: vaultData.id,
         vaultData: { ...vaultData },
-        ...vaultData,
       });
       toast.success(`${vaultData?.title.trim()} updated successfully`);
       handleVaultSelect(vaultData, true);

@@ -34,3 +34,14 @@ export type TBank = {
   note?: string;
   title: string;
 };
+
+// User metadata stored in Firestore for encryption key management
+export type TUserMeta = {
+  userId: string;
+  salt: string;
+  encryptedMasterKeyByPassword: string;
+  encryptedMasterKeyByRecoveryKey: string;
+  encryptedUserID: string; // Used to verify correct decryption
+  createdAt?: Date;
+  updatedAt?: Date;
+};
