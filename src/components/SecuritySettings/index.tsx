@@ -225,7 +225,8 @@ function SecuritySettings({ open, onOpenChange }: Props) {
                 setTab("password");
                 resetRecoveryForm();
               }}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              disabled={isChangingPassword || isResettingRecovery}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                 tab === "password"
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
@@ -239,7 +240,8 @@ function SecuritySettings({ open, onOpenChange }: Props) {
                 setTab("recovery");
                 resetPasswordForm();
               }}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+              disabled={isChangingPassword || isResettingRecovery}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                 tab === "recovery"
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"

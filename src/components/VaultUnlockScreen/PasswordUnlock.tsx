@@ -127,7 +127,8 @@ function PasswordUnlock({ onUnlock, onForgotPassword }: Props) {
               <button
                 type="button"
                 onClick={onForgotPassword}
-                className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors"
+                disabled={isLoading}
+                className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Forgot password? Use recovery key
               </button>

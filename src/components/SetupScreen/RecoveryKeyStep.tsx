@@ -125,6 +125,7 @@ function RecoveryKeyStep({ recoveryKey, onComplete }: Props) {
                 size="sm"
                 className="absolute top-2 right-2"
                 onClick={handleCopyRecoveryKey}
+                disabled={isLoading}
               >
                 {copied ? (
                   <>
@@ -142,12 +143,13 @@ function RecoveryKeyStep({ recoveryKey, onComplete }: Props) {
           </div>
 
           {/* Confirmation checkbox */}
-          <label className="flex items-start gap-3 mb-6 cursor-pointer">
+          <label className={`flex items-start gap-3 mb-6 ${isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
             <input
               type="checkbox"
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
-              className="mt-1 w-4 h-4 rounded border-border text-primary focus:ring-primary"
+              disabled={isLoading}
+              className="mt-1 w-4 h-4 rounded border-border text-primary focus:ring-primary disabled:cursor-not-allowed"
             />
             <span className="text-sm text-muted-foreground">
               I have saved my recovery key in a safe place. I understand that no

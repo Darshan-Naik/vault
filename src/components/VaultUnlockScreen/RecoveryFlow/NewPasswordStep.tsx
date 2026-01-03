@@ -161,7 +161,8 @@ function NewPasswordStep({
             <button
               type="button"
               onClick={onBack}
-              className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+              disabled={isLoading}
+              className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ← Back to recovery key
             </button>

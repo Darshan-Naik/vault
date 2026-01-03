@@ -90,7 +90,8 @@ function EnterRecoveryKeyStep({ onValidate, onSuccess, onBack }: Props) {
                 <button
                   type="button"
                   onClick={onBack}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  disabled={isLoading}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ArrowLeft className="w-3 h-3" />
                   Back to password
