@@ -161,12 +161,6 @@ function RecoveryKeyStep({ recoveryKey, onComplete }: Props) {
               "Continue to Vault"
             )}
           </Button>
-
-          {/* Security note */}
-          <p className="text-xs text-center text-muted-foreground mt-6">
-            This screen is locked for 60 seconds to ensure you have time to save
-            your recovery key.
-          </p>
         </div>
       </div>
     </div>
