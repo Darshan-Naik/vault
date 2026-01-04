@@ -45,46 +45,45 @@ function EnterRecoveryKeyStep({ onValidate, onSuccess, onBack }: Props) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-sm">
-        <div className="rounded-lg p-8 bg-card border border-border shadow-elevated">
+    <div className="min-h-screen flex flex-col items-center justify-center p-3 sm:p-4 bg-background overflow-y-auto">
+      <div className="w-full max-w-sm my-auto">
+        <div className="rounded-lg p-4 sm:p-8 bg-card border border-border shadow-elevated">
           {/* Icon */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4 sm:mb-6">
             <div className={`relative ${shake ? "animate-shake" : ""}`}>
-              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-500/5 border border-amber-500/20 flex items-center justify-center shadow-sm">
-                <Key className="h-8 w-8 text-amber-500" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-500/5 border border-amber-500/20 flex items-center justify-center shadow-sm">
+                <Key className="h-6 w-6 sm:h-8 sm:w-8 text-amber-500" />
               </div>
             </div>
           </div>
 
           {/* Title */}
-          <div className="text-center mb-6">
-            <h1 className="text-xl font-semibold text-foreground mb-2">
+          <div className="text-center mb-4 sm:mb-6">
+            <h1 className="text-lg sm:text-xl font-semibold text-foreground mb-1 sm:mb-2">
               Password Recovery
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Enter your recovery key to reset your password
             </p>
           </div>
 
           {/* Warning */}
-          <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-6">
-            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-amber-500">
+          <div className="flex items-start gap-2 sm:gap-3 p-3 sm:p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 mb-4 sm:mb-6">
+            <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="text-xs sm:text-sm text-amber-500">
               <p className="font-medium mb-1">One-Time Use</p>
               <p>
-                After resetting your password, your current recovery key will be
-                invalidated. A new recovery key will be generated that you must
-                save.
+                After resetting, your current recovery key will be invalidated.
+                A new one will be generated.
               </p>
             </div>
           </div>
 
           {/* Form */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-foreground">
+                <label className="text-xs sm:text-sm font-medium text-foreground">
                   Recovery Key
                 </label>
                 <button
@@ -94,7 +93,7 @@ function EnterRecoveryKeyStep({ onValidate, onSuccess, onBack }: Props) {
                   className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <ArrowLeft className="w-3 h-3" />
-                  Back to password
+                  Back
                 </button>
               </div>
               <Textarea
@@ -106,17 +105,17 @@ function EnterRecoveryKeyStep({ onValidate, onSuccess, onBack }: Props) {
                   }
                 }}
                 placeholder="Paste your recovery key here"
-                className="font-mono text-sm min-h-[100px] resize-none"
+                className="font-mono text-xs sm:text-sm min-h-[80px] sm:min-h-[100px] resize-none"
                 autoFocus
               />
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-xs text-muted-foreground mt-1.5 sm:mt-2 hidden sm:block">
                 Press Ctrl+Enter to continue
               </p>
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 text-sm text-destructive">
-                <AlertTriangle className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-destructive">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -124,7 +123,7 @@ function EnterRecoveryKeyStep({ onValidate, onSuccess, onBack }: Props) {
             <Button
               onClick={handleSubmit}
               disabled={!recoveryKey.trim() || isLoading}
-              className="w-full h-10"
+              className="w-full h-9 sm:h-10 text-sm"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">

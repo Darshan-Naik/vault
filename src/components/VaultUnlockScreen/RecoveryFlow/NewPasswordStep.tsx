@@ -64,32 +64,32 @@ function NewPasswordStep({
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-sm">
-        <div className="rounded-lg p-8 bg-card border border-border shadow-elevated">
+    <div className="min-h-screen flex flex-col items-center justify-center p-3 sm:p-4 bg-background overflow-y-auto">
+      <div className="w-full max-w-sm my-auto">
+        <div className="rounded-lg p-4 sm:p-8 bg-card border border-border shadow-elevated">
           {/* Icon */}
-          <div className="flex justify-center mb-6">
+          <div className="flex justify-center mb-4 sm:mb-6">
             <div className={`relative ${shake ? "animate-shake" : ""}`}>
-              <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shadow-sm">
-                <Lock className="h-8 w-8 text-primary" />
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shadow-sm">
+                <Lock className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
               </div>
             </div>
           </div>
 
           {/* Title */}
-          <div className="text-center mb-6">
-            <h1 className="text-xl font-semibold text-foreground mb-2">
+          <div className="text-center mb-4 sm:mb-6">
+            <h1 className="text-lg sm:text-xl font-semibold text-foreground mb-1 sm:mb-2">
               Set New Password
             </h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Create a strong password for your vault
             </p>
           </div>
 
           {/* Form */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">
+              <label className="text-xs sm:text-sm font-medium text-foreground mb-1.5 sm:mb-2 block">
                 New Password
               </label>
               <div className="relative">
@@ -98,7 +98,7 @@ function NewPasswordStep({
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Enter new password"
-                  className="pr-10"
+                  className="pr-10 h-9 sm:h-10 text-sm"
                   autoFocus
                 />
                 <button
@@ -116,7 +116,7 @@ function NewPasswordStep({
             </div>
 
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">
+              <label className="text-xs sm:text-sm font-medium text-foreground mb-1.5 sm:mb-2 block">
                 Confirm Password
               </label>
               <Input
@@ -129,16 +129,17 @@ function NewPasswordStep({
                   }
                 }}
                 placeholder="Confirm new password"
+                className="h-9 sm:h-10 text-sm"
               />
             </div>
 
             {error && (
               <div
-                className={`flex items-center gap-2 text-sm text-destructive ${
+                className={`flex items-center gap-2 text-xs sm:text-sm text-destructive ${
                   shake ? "animate-shake" : ""
                 }`}
               >
-                <AlertTriangle className="w-4 h-4" />
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -146,12 +147,12 @@ function NewPasswordStep({
             <Button
               onClick={handleSubmit}
               disabled={isLoading || !newPassword || !confirmPassword}
-              className="w-full h-10"
+              className="w-full h-9 sm:h-10 text-sm"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  <span>Resetting password...</span>
+                  <span>Resetting...</span>
                 </div>
               ) : (
                 "Reset Password"
@@ -162,7 +163,7 @@ function NewPasswordStep({
               type="button"
               onClick={onBack}
               disabled={isLoading}
-              className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full text-xs sm:text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ← Back to recovery key
             </button>

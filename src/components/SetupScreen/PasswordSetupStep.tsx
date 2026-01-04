@@ -48,32 +48,31 @@ function PasswordSetupStep({ onSetup }: Props) {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-sm">
-        <div className="rounded-lg p-8 bg-card border border-border shadow-elevated">
+    <div className="min-h-screen flex flex-col items-center justify-center p-3 sm:p-4 bg-background overflow-y-auto">
+      <div className="w-full max-w-sm my-auto">
+        <div className="rounded-lg p-4 sm:p-8 bg-card border border-border shadow-elevated">
           {/* Logo */}
-          <div className="flex justify-center mb-6">
-            <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shadow-sm">
-              <Shield className="h-7 w-7 text-primary" />
+          <div className="flex justify-center mb-4 sm:mb-6">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center shadow-sm">
+              <Shield className="h-6 w-6 sm:h-7 sm:w-7 text-primary" />
             </div>
           </div>
 
           {/* Title */}
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-semibold text-foreground mb-2">
+          <div className="text-center mb-6 sm:mb-8">
+            <h1 className="text-xl sm:text-2xl font-semibold text-foreground mb-1 sm:mb-2">
               Create Vault Password
             </h1>
-            <p className="text-sm text-muted-foreground">
-              This password protects all your vault data with end-to-end
-              encryption
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              This password protects your vault with end-to-end encryption
             </p>
           </div>
 
           {/* Form */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {/* Password field */}
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">
+              <label className="text-xs sm:text-sm font-medium text-foreground mb-1.5 sm:mb-2 block">
                 Password
               </label>
               <div className="relative">
@@ -82,7 +81,7 @@ function PasswordSetupStep({ onSetup }: Props) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter a strong password"
-                  className="pr-10"
+                  className="pr-10 h-9 sm:h-10 text-sm"
                 />
                 <button
                   type="button"
@@ -100,7 +99,7 @@ function PasswordSetupStep({ onSetup }: Props) {
 
             {/* Confirm password field */}
             <div>
-              <label className="text-sm font-medium text-foreground mb-2 block">
+              <label className="text-xs sm:text-sm font-medium text-foreground mb-1.5 sm:mb-2 block">
                 Confirm Password
               </label>
               <div className="relative">
@@ -109,7 +108,7 @@ function PasswordSetupStep({ onSetup }: Props) {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm your password"
-                  className="pr-10"
+                  className="pr-10 h-9 sm:h-10 text-sm"
                 />
                 <button
                   type="button"
@@ -127,8 +126,8 @@ function PasswordSetupStep({ onSetup }: Props) {
 
             {/* Error message */}
             {error && (
-              <div className="flex items-center gap-2 text-sm text-destructive">
-                <AlertTriangle className="w-4 h-4" />
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-destructive">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                 <span>{error}</span>
               </div>
             )}
@@ -137,7 +136,7 @@ function PasswordSetupStep({ onSetup }: Props) {
             <Button
               onClick={handleSetup}
               disabled={isLoading || !password || !confirmPassword}
-              className="w-full h-10"
+              className="w-full h-9 sm:h-10 text-sm"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
@@ -151,9 +150,8 @@ function PasswordSetupStep({ onSetup }: Props) {
           </div>
 
           {/* Info */}
-          <p className="text-xs text-center text-muted-foreground mt-6">
-            Your password never leaves your device. We use this for data
-            encryption.
+          <p className="text-xs text-center text-muted-foreground mt-4 sm:mt-6">
+            Your password never leaves your device.
           </p>
         </div>
       </div>
