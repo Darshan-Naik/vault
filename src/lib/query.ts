@@ -1,49 +1,27 @@
-import { useQuery, QueryClient, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutate } from "qortex-react";
 import { getVaults, addVault, updateVault, deleteVault } from "./actions";
 
-// Create a new QueryClient instance
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 0,
-    },
-  },
-});
-
 export const useVaults = (userId?: string, masterKey?: string | null) => {
-  return useQuery({
-    queryKey: ["vaults", userId],
-    queryFn: () => getVaults(userId as string, masterKey as string),
+  return useQuery(["vaults", userId ?? ""], {
+    fetcher: () => getVaults(userId as string, masterKey as string),
     enabled: !!userId && !!masterKey,
   });
 };
 
 export const useAddVault = () => {
-  return useMutation({
-    mutationFn: addVault,
-    onSettled: () => {
-      // Invalidate and refetch the vaults query
-      queryClient.invalidateQueries({ queryKey: ["vaults"] });
-    },
+  return useMutate(addVault, {
+    queryKey: ["vaults"],
   });
 };
 
 export const useUpdateVault = () => {
-  return useMutation({
-    mutationFn: updateVault,
-    onSettled: () => {
-      // Invalidate and refetch the vaults query
-      queryClient.invalidateQueries({ queryKey: ["vaults"] });
-    },
+  return useMutate(updateVault, {
+    queryKey: ["vaults"],
   });
 };
 
 export const useDeleteVault = () => {
-  return useMutation({
-    mutationFn: deleteVault,
-    onSettled: () => {
-      // Invalidate and refetch the vaults query
-      queryClient.invalidateQueries({ queryKey: ["vaults"] });
-    },
+  return useMutate(deleteVault, {
+    queryKey: ["vaults"],
   });
 };
