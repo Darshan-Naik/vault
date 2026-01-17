@@ -2,16 +2,52 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="icon" type="image/jpeg" href="/logo.jpeg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Store your passwords securely" />
     <meta name="theme-color" content="#ffffff" />
-    <link rel="apple-touch-icon" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/logo.jpeg" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Vault</title>
+      <style>
+        :root {
+          color-scheme: dark;
+        }
+        body {
+          background-color: #0b1220;
+          min-height: 100vh;
+        }
+        .flash-loading {
+          height: 100vh;
+          width: 100vw;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: flash 1s infinite;
+        }
+        @keyframes flash {
+          0% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0;
+          }
+          100% {
+            opacity: 1;
+          }
+        }
+        .flash-loading img {
+          width: 100px;
+          height: 100px;
+        }
+      </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root" class="bg-background min-h-screen">
+      <div class="flash-loading">
+        <img src="/logo.jpeg" alt="Vault" />
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

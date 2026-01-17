@@ -7,8 +7,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "autoUpdate",
-      includeAssets: ["logo.svg"],
+      registerType: "prompt",
+      injectRegister: "script",
+      includeAssets: ["logo.jpeg"],
       manifest: {
         name: "Vault - Password Manager",
         short_name: "Vault",
@@ -18,42 +19,46 @@ export default defineConfig({
         display: "standalone",
         icons: [
           {
-            src: "logo.svg",
+            src: "logo.jpeg",
             sizes: "any",
-            type: "image/svg+xml",
+            type: "image/jpeg",
           },
           {
-            src: "logo.svg",
+            src: "logo.jpeg",
             sizes: "192x192",
-            type: "image/svg+xml",
+            type: "image/jpeg",
             purpose: "any maskable",
           },
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        navigationPreload: true,
+        globPatterns: ["**/*.{js,css,html}"],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-            handler: "CacheFirst",
+            handler: "StaleWhileRevalidate",
             options: {
-              cacheName: "google-fonts-cache",
-              expiration: {
-                maxEntries: 10,
-                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
-              },
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
+              cacheName: "fonts",
             },
           },
         ],
       },
-    }),
+    })
   ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+        },
+      },
+    },
+  }
+
 });
