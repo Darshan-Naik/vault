@@ -43,16 +43,6 @@ const Main = () => {
         >
           {/* Sidebar header with Add button */}
           <div className="px-6 py-5 space-y-4 border-b border-border">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-sm font-semibold text-foreground tracking-tight">
-                  Vaults
-                </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {vaults?.length || 0} items
-                </p>
-              </div>
-            </div>
             <AddNew />
           </div>
 

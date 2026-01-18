@@ -21,7 +21,7 @@ const AddNew = () => {
           <span>New Vault</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-screen overflow-y-auto">
         <AddNewContent handleClose={() => setIsOpen(false)} />
       </DialogContent>
     </Dialog>

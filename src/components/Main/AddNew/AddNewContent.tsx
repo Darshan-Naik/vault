@@ -96,12 +96,7 @@ const AddNewContent = ({ handleClose }: AddNewContentProps) => {
               <Shield className="w-4 h-4 text-foreground" />
             )}
           </div>
-          <div>
             <DialogTitle className="text-lg">Add New Vault</DialogTitle>
-            <DialogDescription className="text-sm">
-              Securely store your sensitive information
-            </DialogDescription>
-          </div>
         </div>
       </DialogHeader>
 
