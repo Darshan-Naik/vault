@@ -48,8 +48,8 @@ importers:
         specifier: ^0.3.0
         version: 0.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       qortex-react:
-        specifier: ^0.3.4
-        version: 0.3.4(react@18.3.1)
+        specifier: ^0.3.5
+        version: 0.3.5(react@18.3.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -2814,11 +2814,11 @@ packages:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
 
-  qortex-core@0.3.4:
-    resolution: {integrity: sha512-FLuldnrKNHye2hM4SnT8w+ClDRc66VoL7ZRbBBPtja9gOWUiQVsN0faKfcLTEOUvC+LBDyO8G5jhnW3cseLFrg==}
+  qortex-core@0.3.5:
+    resolution: {integrity: sha512-JeomXVrgoxNh8C/b4c1bZ5ILWJIbL9YDNkXMlOW8PEtqAouoUn/zXrJ8MJTzg9s8JvlbdCKfA8aIn56O7Dgw5w==}
 
-  qortex-react@0.3.4:
-    resolution: {integrity: sha512-6jGNb9+HVl9e5rxWlwtAssqvK7aSvkealBNsZKPhQXpX6WyiRVFGEqnaHhKEyESrirkJJLejmRHeumlq8TdeRA==}
+  qortex-react@0.3.5:
+    resolution: {integrity: sha512-RSF4ylbugUzOyTH6ikyCEtdlpTts7YT1PLVEZbUseCTY0IOf3TbD2Ul0EUYQHf/5HmCO+HbFNLHpDFP6RKxw4Q==}
     peerDependencies:
       react: '>=18'
 
@@ -6381,11 +6381,11 @@ snapshots:
 
   punycode@2.3.1: {}
 
-  qortex-core@0.3.4: {}
+  qortex-core@0.3.5: {}
 
-  qortex-react@0.3.4(react@18.3.1):
+  qortex-react@0.3.5(react@18.3.1):
     dependencies:
-      qortex-core: 0.3.4
+      qortex-core: 0.3.5
       react: 18.3.1
 
   queue-microtask@1.2.3: {}
