@@ -2,7 +2,7 @@ import { useQuery, useMutate } from "qortex-react";
 import { getVaults, addVault, updateVault, deleteVault } from "./actions";
 
 export const useVaults = (userId?: string, masterKey?: string | null) => {
-  return useQuery(["vaults", userId ?? ""], {
+  return useQuery(["vaults", userId], {
     fetcher: () => getVaults(userId as string, masterKey as string),
     enabled: !!userId && !!masterKey,
   });
