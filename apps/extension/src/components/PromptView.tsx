@@ -1,18 +1,19 @@
-import React from 'react';
-import { Shield, Zap } from 'lucide-react';
+import { Shield, Zap, Copy } from 'lucide-react';
 
 interface PromptViewProps {
     currentHostname: string;
     matchedCredentials: any[];
     onUseCredential: (cred: any) => void;
     onOpenFullVault: () => void;
+    hasFields: boolean;
 }
 
 export const PromptView: React.FC<PromptViewProps> = ({
     currentHostname,
     matchedCredentials,
     onUseCredential,
-    onOpenFullVault
+    onOpenFullVault,
+    hasFields
 }) => {
     return (
         <div className="flex-1 flex flex-col p-4 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
@@ -41,7 +42,11 @@ export const PromptView: React.FC<PromptViewProps> = ({
                             onClick={() => onUseCredential(cred)}
                             className="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold py-2.5 rounded-full transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 text-xs uppercase tracking-widest"
                         >
-                            Fill <Zap className="h-3 w-3 fill-current text-white" />
+                            {hasFields ? (
+                                <>Fill <Zap className="h-3 w-3 fill-current text-white" /></>
+                            ) : (
+                                <>Copy <Copy className="h-3 w-3 text-white" /></>
+                            )}
                         </button>
                     </div>
                 ))}

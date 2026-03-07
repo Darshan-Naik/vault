@@ -1,5 +1,4 @@
-import React from 'react';
-import { Search, Globe, Shield, Zap } from 'lucide-react';
+import { Search, Globe, Shield, Zap, Copy } from 'lucide-react';
 
 interface UnlockedViewProps {
     searchQuery: string;
@@ -7,6 +6,7 @@ interface UnlockedViewProps {
     matchedCredentials: any[];
     otherVaults: any[];
     onUseCredential: (cred: any) => void;
+    hasFields: boolean;
 }
 
 export const UnlockedView: React.FC<UnlockedViewProps> = ({
@@ -14,7 +14,8 @@ export const UnlockedView: React.FC<UnlockedViewProps> = ({
     setSearchQuery,
     matchedCredentials,
     otherVaults,
-    onUseCredential
+    onUseCredential,
+    hasFields
 }) => {
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -45,6 +46,7 @@ export const UnlockedView: React.FC<UnlockedViewProps> = ({
                                     cred={cred}
                                     isMatch={true}
                                     onUse={() => onUseCredential(cred)}
+                                    hasFields={hasFields}
                                 />
                             ))}
                         </div>
@@ -65,6 +67,7 @@ export const UnlockedView: React.FC<UnlockedViewProps> = ({
                                 cred={vault}
                                 isMatch={false}
                                 onUse={() => onUseCredential(vault)}
+                                hasFields={hasFields}
                             />
                         ))
                     )}
@@ -74,7 +77,7 @@ export const UnlockedView: React.FC<UnlockedViewProps> = ({
     );
 };
 
-const CredentialItem = ({ cred, onUse, isMatch }: any) => (
+const CredentialItem = ({ cred, onUse, isMatch, hasFields }: any) => (
     <div className={`group relative flex items-center justify-between p-3 rounded-2xl border transition-all ${isMatch
         ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40'
         : 'hover:bg-neutral-800/50 border-transparent hover:border-neutral-700/50 shadow-sm'
@@ -97,9 +100,10 @@ const CredentialItem = ({ cred, onUse, isMatch }: any) => (
                 onClick={onUse}
                 className={`py-1.5 px-3 italic items-center flex gap-2 rounded-full transition-all shadow-sm text-[10px] font-bold uppercase tracking-wider ${isMatch ? 'bg-emerald-600 text-white' : 'bg-neutral-800/50 text-neutral-400 hover:bg-emerald-600 hover:text-white'
                     }`}
-                title="Autofill"
+                title={hasFields ? "Autofill" : "Copy Password"}
             >
-                Fill <Zap className={`h-3 w-3 ${isMatch ? 'fill-current' : ''}`} />
+                {hasFields ? 'Fill' : 'Copy'} <Zap className={`h-3 w-3 ${isMatch ? 'fill-current' : ''} ${hasFields ? '' : 'hidden'}`} />
+                {!hasFields && <Copy className="h-3 w-3" />}
             </button>
         </div>
     </div>

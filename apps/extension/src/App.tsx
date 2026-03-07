@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [allVaults, setAllVaults] = useState<any[]>([]);
   const [showFullVault, setShowFullVault] = useState(false);
+  const [hasFields, setHasFields] = useState(false);
 
   const [currentHostname, setCurrentHostname] = useState<string>('');
   const isPopupMode = useMemo(() => new URLSearchParams(window.location.search).get('mode') === 'popup', []);
@@ -39,19 +40,26 @@ const App: React.FC = () => {
 
     if (hostParam) {
       setCurrentHostname(hostParam);
-      // If in popup mode, tell the content script we are ready
+      setHasFields(true); // Auto-prompt mode is only triggered if fields exist
       if (isPopupMode && targetTabId) {
         chrome.tabs.sendMessage(targetTabId, { action: ExtensionAction.PROMPT_READY });
       }
     } else {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tab = tabs[0];
-        if (tab?.url) {
-          try {
-            const hostname = new URL(tab.url).hostname;
-            setCurrentHostname(hostname);
-            if (!targetTabId) setTargetTabId(tab.id || null);
-          } catch (e) { }
+        if (tab?.id) {
+          if (!targetTabId) setTargetTabId(tab.id);
+
+          if (tab.url) {
+            try {
+              setCurrentHostname(new URL(tab.url).hostname);
+            } catch (e) { }
+
+            // Check if page has login fields
+            chrome.tabs.sendMessage(tab.id, { action: ExtensionAction.CHECK_FOR_FORM }, (resp) => {
+              if (resp?.hasForm) setHasFields(true);
+            });
+          }
         }
       });
     }
@@ -96,6 +104,17 @@ const App: React.FC = () => {
 
   const handleUseCredential = (cred: any) => {
     const finalTabId = targetTabId;
+
+    if (!hasFields) {
+      // Copy to clipboard
+      if (cred.password) {
+        navigator.clipboard.writeText(cred.password).then(() => {
+          window.close();
+        });
+      }
+      return;
+    }
+
     messenger.getSessionState().then((resp) => {
       if (resp.isUnlocked) {
         const sendAutofill = (tabId: number) => {
@@ -177,6 +196,7 @@ const App: React.FC = () => {
           matchedCredentials={matchedCredentials}
           onUseCredential={handleUseCredential}
           onOpenFullVault={() => setShowFullVault(true)}
+          hasFields={hasFields}
         />
       ) : (
         <UnlockedView
@@ -185,6 +205,7 @@ const App: React.FC = () => {
           matchedCredentials={matchedCredentials}
           otherVaults={otherVaults}
           onUseCredential={handleUseCredential}
+          hasFields={hasFields}
         />
       )}
     </div>

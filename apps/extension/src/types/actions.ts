@@ -12,7 +12,8 @@ export const ExtensionAction = {
     OPEN_AUTO_POPUP: "OPEN_AUTO_POPUP",
     CLOSE_PROMPT: "CLOSE_PROMPT",
     PROMPT_READY: "PROMPT_READY",
-    FORCE_AUTOFILL: "FORCE_AUTOFILL"
+    FORCE_AUTOFILL: "FORCE_AUTOFILL",
+    CHECK_FOR_FORM: "CHECK_FOR_FORM"
 } as const;
 
 export type ExtensionAction = typeof ExtensionAction[keyof typeof ExtensionAction];
