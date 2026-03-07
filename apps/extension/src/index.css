@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-neutral-950 text-white antialiased;
+    margin: 0;
+    overflow: hidden;
+  }
+}
