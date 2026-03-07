@@ -1,5 +1,5 @@
 import React from 'react';
-import { Globe, Shield, Zap } from 'lucide-react';
+import { Shield, Zap } from 'lucide-react';
 
 interface PromptViewProps {
     currentHostname: string;
@@ -16,12 +16,9 @@ export const PromptView: React.FC<PromptViewProps> = ({
 }) => {
     return (
         <div className="flex-1 flex flex-col p-4 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
-            <div className="flex flex-col items-center text-center mb-4 shrink-0">
-                <div className="w-10 h-10 bg-emerald-500/10 rounded-2xl flex items-center justify-center mb-2 border border-emerald-500/20 shadow-inner">
-                    <Globe className="h-5 w-5 text-emerald-500" />
-                </div>
-                <h2 className="text-lg font-black tracking-tight text-white/90">Vault Suggestion</h2>
-                <p className="text-[10px] text-neutral-500 uppercase tracking-widest mt-0.5 font-bold italic">Match found for {currentHostname}</p>
+
+            <div className="mb-4 text-center">
+                <p className="text-[10px] text-emerald-500 font-medium uppercase tracking-wider">Vault for {currentHostname}</p>
             </div>
 
             <div className="flex-1 flex flex-col gap-3 overflow-y-auto custom-scrollbar px-1">

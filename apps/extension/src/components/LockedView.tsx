@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface LockedViewProps {
     currentHostname: string;
@@ -24,36 +24,30 @@ export const LockedView: React.FC<LockedViewProps> = ({
     };
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-8">
-            <div className="mb-4 text-center">
-                <h1 className="text-lg font-bold mb-0.5 tracking-tight">
-                    {hasMatches ? "Vault Detected" : "Vault Locked"}
-                </h1>
+        <div className="flex-1 flex flex-col items-center justify-center p-4">
+            <div className="mb-6 text-center">
+                <h2 className="text-xl mb-0.5 tracking-tight">
+                    Unlock Vault
+                </h2>
                 {hasMatches && (
-                    <p className="text-[10px] text-emerald-500 font-medium uppercase tracking-wider">Matching for {currentHostname}</p>
+                    <p className="text-xs text-emerald-500 font-medium tracking-wider">Vault for {currentHostname}</p>
                 )}
             </div>
 
-            <div className="w-12 h-12 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20">
-                <Lock className="h-6 w-6 text-emerald-500" />
-            </div>
-
-            <form onSubmit={handleSubmit} className="w-full space-y-4">
-                <div className="space-y-2">
-                    <input
-                        type="password"
-                        placeholder="Master Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        disabled={isUnlocking}
-                        autoFocus
-                        className="w-full bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-2 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all text-center text-sm"
-                    />
-                </div>
+            <form onSubmit={handleSubmit} className="w-full space-y-5">
+                <input
+                    type="password"
+                    placeholder="Master Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isUnlocking}
+                    autoFocus
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-2xl px-3 py-1.5 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all text-center text-sm"
+                />
                 <button
                     type="submit"
                     disabled={!password || isUnlocking}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-semibold py-3 rounded-2xl transition-all shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2 text-sm"
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-semibold py-2 rounded-2xl transition-all shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2 text-sm"
                 >
                     {isUnlocking ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -63,9 +57,6 @@ export const LockedView: React.FC<LockedViewProps> = ({
                 </button>
             </form>
 
-            <p className="mt-6 text-[10px] text-neutral-600 text-center leading-relaxed opacity-50 px-4">
-                Vault does not store your master password.
-            </p>
         </div>
     );
 };

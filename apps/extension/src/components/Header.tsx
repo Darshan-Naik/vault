@@ -13,7 +13,7 @@ export const Header: React.FC<HeaderProps> = ({
     onOpenApp
 }) => {
     return (
-        <header className="flex items-center justify-between p-4 border-b border-neutral-800 bg-neutral-950/50 sticky top-0 z-10 backdrop-blur-sm">
+        <header className="flex items-center justify-between py-2.5 px-4 border-b border-neutral-800 bg-neutral-950/50 sticky top-0 z-10 backdrop-blur-sm">
             <div className="flex items-center gap-2">
                 <KeyRound className="h-5 w-5 text-emerald-500" />
                 <h1 className="font-semibold tracking-tight text-white/90">

@@ -18,7 +18,7 @@ export const UnlockedView: React.FC<UnlockedViewProps> = ({
 }) => {
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="p-4 border-b border-neutral-800 bg-neutral-900/30">
+            <div className="p-2 border-b border-neutral-800 bg-neutral-900/30">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500" />
                     <input
@@ -26,7 +26,7 @@ export const UnlockedView: React.FC<UnlockedViewProps> = ({
                         placeholder="Search your vault..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all font-medium"
+                        className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl pl-10 pr-4 py-1.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all font-medium"
                     />
                 </div>
             </div>

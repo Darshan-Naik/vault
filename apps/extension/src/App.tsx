@@ -155,7 +155,7 @@ const App: React.FC = () => {
   const isCompact = isPopupMode && !showFullVault;
 
   return (
-    <div className={`${isCompact ? 'h-[300px]' : 'h-[450px]'} w-[320px] bg-neutral-950 text-neutral-100 flex flex-col font-sans overflow-hidden border border-neutral-800 shadow-2xl`}>
+    <div className={`${isCompact ? 'h-[220px]' : 'h-[450px]'} w-[320px] bg-neutral-950 text-neutral-100 flex flex-col font-sans overflow-hidden border border-neutral-800 shadow-2xl`}>
       {!isCompact && (
         <Header
           isUnlocked={isUnlocked}
