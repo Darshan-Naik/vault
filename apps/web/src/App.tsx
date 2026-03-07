@@ -25,7 +25,8 @@ function App() {
 
   // Handle privacy policy path specially to prevent SPA from hijacking static file
   if (pathname === '/privacy' || pathname === '/privacy.html') {
-    return null; // Let the browser handle the static file if possible, or just don't render Auth
+    window.location.href = '/privacy.html';
+    return null;
   }
 
   // Show loading screen while checking auth or vault key status
