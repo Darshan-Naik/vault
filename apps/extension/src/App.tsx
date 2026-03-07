@@ -5,6 +5,7 @@ import { UnlockedView } from './components/UnlockedView';
 import { PromptView } from './components/PromptView';
 import { useAuth } from './hooks/useAuth';
 import { useVault } from './hooks/useVault';
+import { useAutoResize } from './hooks/useAutoResize';
 import { ExtensionAction } from './types/actions';
 import { messenger } from './utils/messenger';
 
@@ -34,6 +35,9 @@ const App: React.FC = () => {
     pendingSave,
     refresh: refreshSession
   } = useVault(currentHostname);
+
+  // Use custom hook for auto-resizing standalone windows
+  useAutoResize([isUnlocked, showFullVault, matchedCredentials, pendingSave]);
 
   // 3. Tab & Hostname Detection
   useEffect(() => {
@@ -173,9 +177,14 @@ const App: React.FC = () => {
     );
   }
 
-  const handleSave = () => {
+  const handleSave = (updatedTitle?: string) => {
     if (pendingSave) {
-      messenger.saveCredential(pendingSave).then(() => {
+      const dataToSave = {
+        ...pendingSave,
+        title: updatedTitle || pendingSave.title || currentHostname
+      };
+
+      messenger.saveCredential(dataToSave).then(() => {
         window.close();
       });
     }
@@ -184,7 +193,7 @@ const App: React.FC = () => {
   const isCompact = (isPopupMode || isSaveMode) && !showFullVault;
 
   return (
-    <div className={`${isCompact ? (isSaveMode ? 'h-[280px]' : 'h-[220px]') : 'h-[450px]'} w-[320px] bg-neutral-950 text-neutral-100 flex flex-col font-sans overflow-hidden border border-neutral-800 shadow-2xl`}>
+    <div className={`h-fit max-h-[500px] w-[320px] bg-neutral-950 text-neutral-100 flex flex-col font-sans overflow-hidden border border-neutral-800 shadow-2xl`}>
       {!isCompact && (
         <Header
           isUnlocked={isUnlocked}

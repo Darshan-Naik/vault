@@ -1,18 +1,18 @@
+import { WINDOW_CONFIG } from './config';
+
 export const openAutoPopup = (senderTabId: number, hostname: string, mode: string = "popup") => {
     const popupUrl = `index.html?mode=${mode}&tabId=${senderTabId}&hostname=${encodeURIComponent(hostname)}`;
 
     const openStandalone = () => {
-        // Increase height for save-prompt to fit buttons correctly
-        const height = mode === 'save-prompt' ? 360 : 320;
 
         chrome.windows.create({
             url: chrome.runtime.getURL(popupUrl),
             type: 'popup',
-            width: 320,
-            height: height,
+            width: WINDOW_CONFIG.WIDTH,
+            height: WINDOW_CONFIG.DEFAULT_HEIGHT,
             // Position near the top-right of the screen
-            top: 80,
-            left: 1000,
+            top: WINDOW_CONFIG.TOP,
+            left: WINDOW_CONFIG.LEFT,
             focused: true
         });
     };

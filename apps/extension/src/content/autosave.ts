@@ -19,7 +19,7 @@ export function initAutosave() {
                     action: "OPEN_SAVE_POPUP",
                     hostname: window.location.hostname,
                     payload: {
-                        title: window.location.hostname,
+                        title: document.title || window.location.hostname,
                         uid: username,
                         password: password,
                         url: window.location.href,

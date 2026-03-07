@@ -1,4 +1,5 @@
-import { Shield, Zap, Copy } from 'lucide-react';
+import { Shield, Zap, Copy, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 
 interface PromptViewProps {
     currentHostname: string;
@@ -8,7 +9,7 @@ interface PromptViewProps {
     hasFields: boolean;
     isSaveMode?: boolean;
     pendingSave?: any;
-    onSave?: () => void;
+    onSave?: (updatedTitle: string) => void;
     onDismiss?: () => void;
 }
 
@@ -23,32 +24,73 @@ export const PromptView: React.FC<PromptViewProps> = ({
     onSave,
     onDismiss
 }) => {
+    const [editedTitle, setEditedTitle] = useState(pendingSave?.title || currentHostname || "");
+    const [showPassword, setShowPassword] = useState(false);
+
+    // Sync title when pendingSave is loaded
+    useEffect(() => {
+        if (pendingSave?.title) {
+            setEditedTitle(pendingSave.title);
+        }
+    }, [pendingSave]);
+
     if (isSaveMode) {
         return (
             <div className="flex-1 flex flex-col p-4 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
-                <div className="mb-4 text-center">
-                    <p className="text-[10px] text-emerald-500 font-medium uppercase tracking-wider">Save to Vault</p>
+                <div className="mb-2 text-center">
+                    <p className="text-[10px] text-emerald-400 font-medium uppercase tracking-wider">Save to Vault</p>
+                    <p className="text-[10px] text-neutral-500 truncate">{currentHostname}</p>
                 </div>
 
-                <div className="flex-1 flex flex-col gap-3 justify-center items-center">
-                    <div className="h-12 w-12 rounded-2xl bg-neutral-900 flex items-center justify-center text-emerald-500 mb-2 border border-neutral-800">
-                        <Shield className="h-6 w-6" />
-                    </div>
-                    <div className="text-center mb-6">
-                        <h3 className="text-sm font-bold text-white/90">Save login for {currentHostname}?</h3>
-                        <p className="text-[10px] text-neutral-500 mt-1">{pendingSave?.uid || '(No username found)'}</p>
+                <div className="flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-1">
+                    <div className="space-y-4">
+                        <div className="space-y-1.5 px-0.5">
+                            <label className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider ml-1">Title</label>
+                            <input
+                                type="text"
+                                value={editedTitle}
+                                onChange={(e) => setEditedTitle(e.target.value)}
+                                placeholder="e.g. My Account"
+                                className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-emerald-500/50 transition-colors"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5 px-0.5">
+                            <label className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider ml-1">Username</label>
+                            <div className="w-full bg-neutral-900/30 border border-neutral-800/50 rounded-xl px-4 py-2.5 text-sm text-neutral-300 truncate font-mono">
+                                {pendingSave?.uid || '—'}
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5 px-0.5">
+                            <label className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider ml-1">Password</label>
+                            <div className="relative group">
+                                <div className="w-full bg-neutral-900/30 border border-neutral-800/50 rounded-xl px-4 py-2.5 text-sm text-neutral-300 font-mono flex items-center justify-between">
+                                    <span className="truncate">
+                                        {showPassword ? pendingSave?.password : '••••••••••••'}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="text-neutral-600 hover:text-neutral-400 transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="w-full flex flex-col gap-3 px-2">
+                    <div className="w-full flex flex-col gap-2.5 mt-auto pt-4">
                         <button
-                            onClick={onSave}
+                            onClick={() => onSave?.(editedTitle)}
                             className="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold py-3 rounded-full transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 text-xs uppercase tracking-widest"
                         >
-                            Save Password
+                            Save to Vault
                         </button>
                         <button
                             onClick={onDismiss}
-                            className="w-full bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold py-2.5 rounded-full transition-all text-[10px] uppercase tracking-widest"
+                            className="w-full text-neutral-500 hover:text-neutral-300 font-bold py-1 transition-all text-[10px] uppercase tracking-widest"
                         >
                             Not Now
                         </button>
@@ -59,9 +101,9 @@ export const PromptView: React.FC<PromptViewProps> = ({
     }
 
     return (
-        <div className="flex-1 flex flex-col p-4 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
+        <div className="flex-1 flex flex-col p-4 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden gap-4">
 
-            <div className="mb-4 text-center">
+            <div className="text-center">
                 <p className="text-[10px] text-emerald-500 font-medium uppercase tracking-wider">Vault for {currentHostname}</p>
             </div>
 
@@ -95,14 +137,12 @@ export const PromptView: React.FC<PromptViewProps> = ({
                 ))}
             </div>
 
-            <div className="flex flex-col gap-3 shrink-0">
-                <button
-                    onClick={onOpenFullVault}
-                    className="text-[8px] text-neutral-700 hover:text-neutral-400 uppercase tracking-[0.3em] font-black transition-colors text-center"
-                >
-                    Open Full Vault
-                </button>
-            </div>
+            <button
+                onClick={onOpenFullVault}
+                className="text-[8px] text-neutral-700 hover:text-neutral-400 uppercase tracking-[0.3em] font-black transition-colors text-center"
+            >
+                Open Full Vault
+            </button>
         </div>
     );
 };
