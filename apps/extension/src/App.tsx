@@ -17,6 +17,7 @@ const App: React.FC = () => {
 
   const [currentHostname, setCurrentHostname] = useState<string>('');
   const isPopupMode = useMemo(() => new URLSearchParams(window.location.search).get('mode') === 'popup', []);
+  const isSaveMode = useMemo(() => new URLSearchParams(window.location.search).get('mode') === 'save-prompt', []);
   const targetTabIdFromMsg = useMemo(() => {
     const tid = new URLSearchParams(window.location.search).get('tabId');
     return tid ? parseInt(tid) : null;
@@ -30,6 +31,7 @@ const App: React.FC = () => {
     setIsUnlocked,
     setSessionMasterKey,
     matchedCredentials,
+    pendingSave,
     refresh: refreshSession
   } = useVault(currentHostname);
 
@@ -171,10 +173,18 @@ const App: React.FC = () => {
     );
   }
 
-  const isCompact = isPopupMode && !showFullVault;
+  const handleSave = () => {
+    if (pendingSave) {
+      messenger.saveCredential(pendingSave).then(() => {
+        window.close();
+      });
+    }
+  };
+
+  const isCompact = (isPopupMode || isSaveMode) && !showFullVault;
 
   return (
-    <div className={`${isCompact ? 'h-[220px]' : 'h-[450px]'} w-[320px] bg-neutral-950 text-neutral-100 flex flex-col font-sans overflow-hidden border border-neutral-800 shadow-2xl`}>
+    <div className={`${isCompact ? (isSaveMode ? 'h-[280px]' : 'h-[220px]') : 'h-[450px]'} w-[320px] bg-neutral-950 text-neutral-100 flex flex-col font-sans overflow-hidden border border-neutral-800 shadow-2xl`}>
       {!isCompact && (
         <Header
           isUnlocked={isUnlocked}
@@ -190,13 +200,19 @@ const App: React.FC = () => {
           isUnlocking={isUnlocking}
           onUnlock={handleUnlock}
         />
-      ) : isPopupMode && !showFullVault ? (
+      ) : (isPopupMode || isSaveMode) && !showFullVault ? (
         <PromptView
           currentHostname={currentHostname}
           matchedCredentials={matchedCredentials}
           onUseCredential={handleUseCredential}
           onOpenFullVault={() => setShowFullVault(true)}
           hasFields={hasFields}
+          isSaveMode={isSaveMode}
+          pendingSave={pendingSave}
+          onSave={handleSave}
+          onDismiss={() => {
+            messenger.clearPendingSave().then(() => window.close());
+          }}
         />
       ) : (
         <UnlockedView

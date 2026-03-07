@@ -6,6 +6,10 @@ interface PromptViewProps {
     onUseCredential: (cred: any) => void;
     onOpenFullVault: () => void;
     hasFields: boolean;
+    isSaveMode?: boolean;
+    pendingSave?: any;
+    onSave?: () => void;
+    onDismiss?: () => void;
 }
 
 export const PromptView: React.FC<PromptViewProps> = ({
@@ -13,8 +17,47 @@ export const PromptView: React.FC<PromptViewProps> = ({
     matchedCredentials,
     onUseCredential,
     onOpenFullVault,
-    hasFields
+    hasFields,
+    isSaveMode,
+    pendingSave,
+    onSave,
+    onDismiss
 }) => {
+    if (isSaveMode) {
+        return (
+            <div className="flex-1 flex flex-col p-4 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
+                <div className="mb-4 text-center">
+                    <p className="text-[10px] text-emerald-500 font-medium uppercase tracking-wider">Save to Vault</p>
+                </div>
+
+                <div className="flex-1 flex flex-col gap-3 justify-center items-center">
+                    <div className="h-12 w-12 rounded-2xl bg-neutral-900 flex items-center justify-center text-emerald-500 mb-2 border border-neutral-800">
+                        <Shield className="h-6 w-6" />
+                    </div>
+                    <div className="text-center mb-6">
+                        <h3 className="text-sm font-bold text-white/90">Save login for {currentHostname}?</h3>
+                        <p className="text-[10px] text-neutral-500 mt-1">{pendingSave?.uid || '(No username found)'}</p>
+                    </div>
+
+                    <div className="w-full flex flex-col gap-3 px-2">
+                        <button
+                            onClick={onSave}
+                            className="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-bold py-3 rounded-full transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 text-xs uppercase tracking-widest"
+                        >
+                            Save Password
+                        </button>
+                        <button
+                            onClick={onDismiss}
+                            className="w-full bg-neutral-900 hover:bg-neutral-800 text-neutral-400 font-bold py-2.5 rounded-full transition-all text-[10px] uppercase tracking-widest"
+                        >
+                            Not Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex-1 flex flex-col p-4 animate-in fade-in slide-in-from-bottom-4 duration-500 overflow-hidden">
 

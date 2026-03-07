@@ -7,7 +7,8 @@ export const STORAGE_KEYS = {
     MASTER_KEY: 'vault_master_key',
     DECRYPTED_VAULTS: 'vault_decrypted_cache',
     ENCRYPTED_VAULTS: 'vault_encrypted_cache',
-    USER_PROFILE: 'vault_user_profile'
+    USER_PROFILE: 'vault_user_profile',
+    PENDING_SAVE: 'vault_pending_save'
 };
 
 /**

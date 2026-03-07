@@ -6,9 +6,11 @@ export function useVault(hostname?: string) {
     const [matchedCredentials, setMatchedCredentials] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [pendingSave, setPendingSave] = useState<any | null>(null);
+
     const checkSession = () => {
         // 1. Double check with shared storage immediately
-        chrome.storage.session.get(['vault_master_key'], (result) => {
+        chrome.storage.session.get(['vault_master_key', 'vault_pending_save'], (result) => {
             if (result.vault_master_key) {
                 setIsUnlocked(true);
                 setSessionMasterKey(result.vault_master_key);
@@ -17,6 +19,9 @@ export function useVault(hostname?: string) {
                 setIsUnlocked(false);
                 setSessionMasterKey(null);
                 localStorage.setItem('vault_unlocked_guess', 'false');
+            }
+            if (result.vault_pending_save) {
+                setPendingSave(result.vault_pending_save);
             }
         });
 
@@ -63,6 +68,7 @@ export function useVault(hostname?: string) {
         setSessionMasterKey,
         matchedCredentials,
         setMatchedCredentials,
+        pendingSave,
         loading,
         refresh: checkSession
     };

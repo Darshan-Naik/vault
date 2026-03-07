@@ -28,6 +28,7 @@ export const messenger = {
     unlockAndGet: (payload: { masterPassword: string, hostname: string }) =>
         sendMessage(ExtensionAction.UNLOCK_AND_GET_CREDENTIAL, payload),
     saveCredential: (payload: any) => sendMessage(ExtensionAction.SAVE_CREDENTIAL, payload),
+    clearPendingSave: () => sendMessage(ExtensionAction.CLEAR_PENDING_SAVE),
     syncUserAuth: (payload: { userJson: any, apiKey: string }) =>
         sendMessage(ExtensionAction.SYNC_USER_AUTH, payload),
     syncUserLogout: () => sendMessage(ExtensionAction.SYNC_USER_LOGOUT)

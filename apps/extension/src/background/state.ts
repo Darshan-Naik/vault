@@ -31,6 +31,16 @@ export const state = {
         } else {
             await storage.remove(STORAGE_KEYS.ENCRYPTED_VAULTS, 'local');
         }
+    },
+    get pendingSave(): Promise<any | null> {
+        return storage.get<any>(STORAGE_KEYS.PENDING_SAVE, 'session');
+    },
+    async setPendingSave(data: any | null) {
+        if (data) {
+            await storage.set(STORAGE_KEYS.PENDING_SAVE, data, 'session');
+        } else {
+            await storage.remove(STORAGE_KEYS.PENDING_SAVE, 'session');
+        }
     }
 };
 

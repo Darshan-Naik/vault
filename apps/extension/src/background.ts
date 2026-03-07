@@ -66,6 +66,19 @@ const Handlers: Record<string, (request: any, sender: chrome.runtime.MessageSend
         return { success: true, vaults: updated };
     },
 
+    [ExtensionAction.OPEN_SAVE_POPUP]: async (req, sender) => {
+        await state.setPendingSave(req.payload);
+        if (sender.tab?.id) {
+            openAutoPopup(sender.tab.id, req.hostname, "save-prompt");
+        }
+        return { success: true };
+    },
+
+    [ExtensionAction.CLEAR_PENDING_SAVE]: async () => {
+        await state.setPendingSave(null);
+        return { success: true };
+    },
+
     [ExtensionAction.OPEN_AUTO_POPUP]: async (req, sender) => {
         if (sender.tab?.id) {
             openAutoPopup(sender.tab.id, req.hostname);

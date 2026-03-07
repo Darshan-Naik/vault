@@ -115,6 +115,9 @@ export const handleSaveCredential = async (authUser: any, payload: any) => {
         const raw = await getRawVaults(authUser.uid);
         await state.setEncryptedVaults(raw);
 
+        // Clear pending save
+        await state.setPendingSave(null);
+
         chrome.notifications.create({
             type: "basic",
             iconUrl: "/pwa-192x192.png",
