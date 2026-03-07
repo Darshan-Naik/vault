@@ -80,7 +80,7 @@ function Auth() {
           </Button>
 
           {/* Security info */}
-          <div className="mt-6 pt-6 border-t border-border">
+          <div className="mt-6 pt-6 border-t border-border flex flex-col gap-4">
             <button
               type="button"
               onClick={() => setSecurityInfoOpen(true)}
@@ -89,6 +89,14 @@ function Auth() {
               <ShieldCheck className="w-4 h-4" />
               <span>How we protect your data</span>
             </button>
+            <a
+              href="/privacy.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] text-muted-foreground hover:text-primary text-center uppercase tracking-widest font-bold transition-colors"
+            >
+              Privacy Policy
+            </a>
           </div>
         </div>
       </div>
