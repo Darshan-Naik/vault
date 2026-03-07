@@ -21,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center gap-2">
                 <KeyRound className="h-5 w-5 text-emerald-500" />
                 <h1 className="font-semibold tracking-tight text-white/90">
-                    {isUnlocked ? "Vault unlocked" : "Vault"}
+                    Vault
                 </h1>
             </div>
             <div className="flex items-center gap-3">
