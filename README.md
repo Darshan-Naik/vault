@@ -1,89 +1,48 @@
-# Vault
+# Vault 🔐
 
 A secure, zero-knowledge password and secrets manager with end-to-end encryption. Your data is encrypted on your device before it ever leaves — we can't read it, and neither can anyone else.
 
-## Features
+Vault is structured as a **PNPM Monorepo**, sharing a unified security core across the web application and browser extension.
 
-- **Zero-Knowledge Security** — Your password and recovery key are never stored or transmitted
-- **End-to-End Encryption** — All vault data is encrypted client-side using AES-256-CBC
-- **Master Key Architecture** — A unique master key encrypts your data, protected by your password
-- **Recovery Key Backup** — One-time recovery key for password reset (invalidated after use)
-- **PIN Quick Unlock** — Fast re-entry after inactivity without re-entering your password
-- **Biometric Support** — Use fingerprint or face recognition for quick unlock
-- **PWA Ready** — Install as a native-like app on any device
-- **Google Authentication** — Secure sign-in with your Google account
+## 🏗️ Monorepo Structure
 
-## Security Architecture
+- **`apps/web`**: The main Vault web application (React + Vite + PWA).
+- **`apps/extension`**: The Vault browser extension (Manifest V3) for autofill and secure management.
+- **`packages/shared`**: The core library containing encryption, Firebase logic, and state management used by both apps.
 
-### How It Works
+## ✨ Features
 
-1. **Account Setup**
+- **Zero-Knowledge Security** — Your password and recovery key are never stored or transmitted.
+- **End-to-End Encryption** — All vault data is encrypted client-side using AES-256-GCM.
+- **Compact Auto-Fill Prompt** — Modern, discreet extension UI for lightning-fast logins.
+- **Master Key Architecture** — Unique master keys per user, protected by PBKDF2 (310,000 iterations).
+- **Zero-Storage Extension** — Sensitive keys stay in RAM only; when the browser closes, the vault locks.
+- **Recovery Key Backup** — Secure one-time-use recovery key for password reset.
+- **Google Authentication** — Secure sign-in with your Google account.
 
-   - You create a password (never sent to servers)
-   - A unique master key is generated locally
-   - Master key is encrypted with your password hash (PBKDF2, 310,000 iterations)
-   - A one-time recovery key is generated for password recovery
-   - Only encrypted data is stored in the cloud
-
-2. **Unlocking Your Vault**
-
-   - Your password is hashed locally
-   - The hash decrypts your master key
-   - Master key decrypts your vault data
-   - Everything happens on your device
-
-3. **Password Recovery**
-   - Recovery key unlocks the master key
-   - You set a new password
-   - A new recovery key is generated (old one is invalidated)
-   - This ensures recovery keys can only be used once
-
-### What We Store
-
-- Encrypted master key (protected by your password hash)
-- Encrypted master key (protected by your recovery key hash)
-- Your encrypted vault data
-- Salt for key derivation
-
-### What We Never Store
-
-- Your password
-- Your recovery key
-- Your master key (unencrypted)
-- Any unencrypted vault data
-
-## Getting Started
+## 🛠️ Development
 
 ### Prerequisites
 
-- Node.js 18+ or Bun
-- Firebase project with Firestore enabled
+- [Node.js](https://nodejs.org/) 20+
+- [pnpm](https://pnpm.io/) 9+
 
 ### Installation
 
 ```bash
-# Clone the repository
-git clone <repo-url>
-cd vault
+# Install dependencies from root
+pnpm install
 
-# Install dependencies
-bun install
-# or
-npm install
+# Build all packages and apps
+pnpm -r run build
 
-# Set up environment variables
-cp .env.example .env.local
-# Add your Firebase config to .env.local
-
-# Start development server
-bun dev
-# or
-npm run dev
+# Start development for both Web and Extension
+pnpm dev
 ```
 
 ### Environment Variables
 
-Create a `.env.local` file with your Firebase configuration:
+Create a `.env.local` in `apps/web` and `apps/extension` with your Firebase configuration:
 
 ```env
 VITE_FIREBASE_API_KEY=your-api-key
@@ -94,18 +53,17 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
 VITE_FIREBASE_APP_ID=your-app-id
 ```
 
-### Building for Production
+## 🚀 Deployment
 
-```bash
-bun run build
-# or
-npm run build
-```
+- **Web App**: Automatically deployed to Firebase Hosting on merge to `main`.
+- **Extension**:
+  1. Build the production bundle: `pnpm -r run build`
+  2. Zip the contents of `apps/extension/dist`
+  3. Upload to the Chrome Web Store Developer Console.
 
-## Security Considerations
+## 🔒 Security Summary
 
-- All cryptographic operations use the Web Crypto API for non-blocking performance
-- Password hashing uses PBKDF2 with 310,000 iterations (OWASP recommendation)
-- Master key is AES-256 (256-bit)
-- Recovery keys are one-time use only
-- No sensitive data is ever logged or stored unencrypted
+- **Encryption**: AES-256 (Web Crypto API).
+- **Hashing**: PBKDF2 with 310,000 iterations.
+- **Key Derivation**: Salted and generated entirely on the device.
+- **Data Persistence**: Only encrypted blobs touch the Firebase database.
