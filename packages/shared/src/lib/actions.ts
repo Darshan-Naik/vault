@@ -14,6 +14,11 @@ import { TVault } from "./types";
 import { decryptData, encryptData } from "./crypto";
 
 export const getVaults = async (userId: string, masterKey: string) => {
+  const vaults = await getRawVaults(userId);
+  return vaults.map((doc) => decryptData(doc, masterKey)) as TVault[];
+};
+
+export const getRawVaults = async (userId: string) => {
   const vaultCollection = collection(db, "vault-db");
   const userVaultsCollection = doc(vaultCollection, userId);
 
@@ -23,9 +28,7 @@ export const getVaults = async (userId: string, masterKey: string) => {
   );
   const querySnapshot = await getDocs(q);
 
-  return querySnapshot.docs
-    .map((doc) => ({ ...doc.data(), id: doc.id }))
-    .map((doc) => decryptData(doc, masterKey)) as TVault[];
+  return querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
 };
 
 export const addVault = async (params: {

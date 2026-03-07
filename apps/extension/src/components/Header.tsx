@@ -3,16 +3,12 @@ import { KeyRound, Lock, ExternalLink } from 'lucide-react';
 
 interface HeaderProps {
     isUnlocked: boolean;
-    isPopupMode: boolean;
-    onDismiss: () => void;
     onLock: () => void;
     onOpenApp: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
     isUnlocked,
-    isPopupMode,
-    onDismiss,
     onLock,
     onOpenApp
 }) => {
@@ -25,14 +21,6 @@ export const Header: React.FC<HeaderProps> = ({
                 </h1>
             </div>
             <div className="flex items-center gap-3">
-                {isPopupMode && (
-                    <button
-                        onClick={onDismiss}
-                        className="text-xs text-neutral-500 hover:text-white transition-colors border border-neutral-800 px-2 py-0.5 rounded"
-                    >
-                        Dismiss
-                    </button>
-                )}
                 {isUnlocked && (
                     <button onClick={onLock} title="Lock Vault">
                         <Lock className="h-4 w-4 text-neutral-500 hover:text-white transition-colors" />

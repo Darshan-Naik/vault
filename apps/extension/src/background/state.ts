@@ -1,15 +1,40 @@
-// RAM-ONLY STATE (Zero-Storage Security)
-export interface BackgroundState {
-    cachedMasterKey: string | null;
-    cachedVaults: any[] | null;
-}
+import { storage, STORAGE_KEYS } from "../utils/storage";
 
-export const state: BackgroundState = {
-    cachedMasterKey: null,
-    cachedVaults: null,
+// BACKED BY STORAGE (Survives Worker Restart)
+export const state = {
+    get cachedMasterKey(): Promise<string | null> {
+        return storage.get<string>(STORAGE_KEYS.MASTER_KEY, 'session');
+    },
+    async setMasterKey(key: string | null) {
+        if (key) {
+            await storage.set(STORAGE_KEYS.MASTER_KEY, key, 'session');
+        } else {
+            await storage.remove(STORAGE_KEYS.MASTER_KEY, 'session');
+        }
+    },
+    get cachedVaults(): Promise<any[] | null> {
+        return storage.get<any[]>(STORAGE_KEYS.DECRYPTED_VAULTS, 'session');
+    },
+    async setVaults(vaults: any[] | null) {
+        if (vaults) {
+            await storage.set(STORAGE_KEYS.DECRYPTED_VAULTS, vaults, 'session');
+        } else {
+            await storage.remove(STORAGE_KEYS.DECRYPTED_VAULTS, 'session');
+        }
+    },
+    get encryptedVaults(): Promise<any[] | null> {
+        return storage.get<any[]>(STORAGE_KEYS.ENCRYPTED_VAULTS, 'local');
+    },
+    async setEncryptedVaults(vaults: any[] | null) {
+        if (vaults) {
+            await storage.set(STORAGE_KEYS.ENCRYPTED_VAULTS, vaults, 'local');
+        } else {
+            await storage.remove(STORAGE_KEYS.ENCRYPTED_VAULTS, 'local');
+        }
+    }
 };
 
-export const clearCache = () => {
-    state.cachedMasterKey = null;
-    state.cachedVaults = null;
+export const clearCache = async () => {
+    await storage.clearSession();
+    await storage.remove(STORAGE_KEYS.ENCRYPTED_VAULTS, 'local');
 };

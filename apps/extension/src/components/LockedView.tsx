@@ -5,18 +5,14 @@ interface LockedViewProps {
     currentHostname: string;
     hasMatches: boolean;
     isUnlocking: boolean;
-    isPopupMode: boolean;
     onUnlock: (password: string) => void;
-    onDismiss: () => void;
 }
 
 export const LockedView: React.FC<LockedViewProps> = ({
     currentHostname,
     hasMatches,
     isUnlocking,
-    isPopupMode,
     onUnlock,
-    onDismiss
 }) => {
     const [password, setPassword] = useState('');
 
@@ -28,19 +24,10 @@ export const LockedView: React.FC<LockedViewProps> = ({
     };
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
-            {isPopupMode && (
-                <button
-                    onClick={onDismiss}
-                    className="absolute top-4 right-4 text-neutral-500 hover:text-white"
-                >
-                    ✕
-                </button>
-            )}
-
+        <div className="flex-1 flex flex-col items-center justify-center p-8">
             <div className="mb-4 text-center">
                 <h1 className="text-lg font-bold mb-0.5 tracking-tight">
-                    {hasMatches ? "Login Detected" : "Vault Locked"}
+                    {hasMatches ? "Vault Detected" : "Vault Locked"}
                 </h1>
                 {hasMatches && (
                     <p className="text-[10px] text-emerald-500 font-medium uppercase tracking-wider">Matching for {currentHostname}</p>
@@ -60,13 +47,13 @@ export const LockedView: React.FC<LockedViewProps> = ({
                         onChange={(e) => setPassword(e.target.value)}
                         disabled={isUnlocking}
                         autoFocus
-                        className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all text-center text-sm"
+                        className="w-full bg-neutral-900 border border-neutral-800 rounded-2xl px-4 py-2 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all text-center text-sm"
                     />
                 </div>
                 <button
                     type="submit"
                     disabled={!password || isUnlocking}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-semibold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2 text-sm"
+                    className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-semibold py-3 rounded-2xl transition-all shadow-lg shadow-emerald-900/20 flex items-center justify-center gap-2 text-sm"
                 >
                     {isUnlocking ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

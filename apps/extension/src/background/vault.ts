@@ -1,5 +1,4 @@
-import { getVaults, addVault, db, getUserMeta, unlockWithPassword } from '@vault/shared';
-import { collection, getDocs, query, doc } from 'firebase/firestore';
+import { getVaults, addVault, getRawVaults, getUserMeta, unlockWithPassword, decryptData } from '@vault/shared';
 import { matchHostname } from '../utils/hostname';
 import { state } from './state';
 
@@ -7,32 +6,60 @@ export const handleGetCredentials = async (authUser: any, hostname: string) => {
     if (!authUser?.uid) return { credentials: [] };
 
     try {
-        if (!state.cachedMasterKey) {
-            const vaultCollection = collection(db, "vault-db");
-            const userVaultsCollection = doc(vaultCollection, authUser.uid);
-            const q = query(collection(userVaultsCollection, "vaults"));
-            const querySnapshot = await getDocs(q);
+        const cachedMasterKey = await state.cachedMasterKey;
+        const cachedVaults = await state.cachedVaults;
 
-            const matched = querySnapshot.docs
-                .map(d => ({ ...d.data(), id: d.id } as any))
-                .filter(v => v.type === "CREDENTIAL" && v.url && matchHostname(v.url, hostname))
-                .map(v => ({
-                    id: v.id,
-                    title: v.title,
-                    url: v.url,
-                    isLocked: true
-                }));
-
+        // 1. If we have decrypted vaults, use them
+        if (cachedVaults) {
+            const matched = cachedVaults.filter((v: any) =>
+                v.type === "CREDENTIAL" && v.url && matchHostname(v.url, hostname)
+            );
             return { credentials: matched };
         }
 
-        if (!state.cachedVaults) {
-            state.cachedVaults = await getVaults(authUser.uid, state.cachedMasterKey);
+        // 2. If we have the master key but no decrypted vaults (worker restart), 
+        // try to decrypt from local encrypted cache
+        if (cachedMasterKey) {
+            const encryptedVaults = await state.encryptedVaults;
+            if (encryptedVaults) {
+                const decrypted = encryptedVaults.map(v => decryptData(v, cachedMasterKey));
+                await state.setVaults(decrypted);
+                const matched = decrypted.filter((v: any) =>
+                    v.type === "CREDENTIAL" && v.url && matchHostname(v.url, hostname)
+                );
+                return { credentials: matched };
+            }
+
+            // Fallback: Fetch from Firestore and cache
+            const vaults = await getVaults(authUser.uid, cachedMasterKey);
+            await state.setVaults(vaults);
+
+            // Also update raw cache
+            const raw = await getRawVaults(authUser.uid);
+            await state.setEncryptedVaults(raw);
+
+            const matched = vaults.filter((v: any) =>
+                v.type === "CREDENTIAL" && v.url && matchHostname(v.url, hostname)
+            );
+            return { credentials: matched };
         }
 
-        const matched = state.cachedVaults.filter((v: any) =>
-            v.type === "CREDENTIAL" && v.url && matchHostname(v.url, hostname)
-        );
+        // 3. Not unlocked: Show locked placeholders from local raw cache or Firestore
+        let rawVaults = await state.encryptedVaults;
+        if (!rawVaults) {
+            rawVaults = await getRawVaults(authUser.uid);
+            await state.setEncryptedVaults(rawVaults);
+        }
+
+        const matched = rawVaults
+            .filter((v: any) => v.type === "CREDENTIAL" && v.url && matchHostname(v.url, hostname))
+            .map((v: any) => ({
+                id: v.id,
+                title: v.title,
+                url: v.url,
+                isLocked: true
+            }));
+
         return { credentials: matched };
     } catch (e) {
         console.error("Error matching credentials:", e);
@@ -51,10 +78,16 @@ export const handleUnlockAndGetCredential = async (authUser: any, payload: any) 
         const masterKey = await unlockWithPassword(userMeta, masterPassword);
         if (!masterKey) return { success: false, error: "Incorrect master password" };
 
-        state.cachedMasterKey = masterKey;
-        state.cachedVaults = await getVaults(authUser.uid, masterKey);
+        await state.setMasterKey(masterKey);
 
-        const matched = state.cachedVaults.filter((v: any) =>
+        // Fetch and cache decrypted and encrypted versions
+        const vaults = await getVaults(authUser.uid, masterKey);
+        await state.setVaults(vaults);
+
+        const raw = await getRawVaults(authUser.uid);
+        await state.setEncryptedVaults(raw);
+
+        const matched = vaults.filter((v: any) =>
             v.type === "CREDENTIAL" && v.url && matchHostname(v.url, hostname)
         );
 
@@ -65,16 +98,22 @@ export const handleUnlockAndGetCredential = async (authUser: any, payload: any) 
 };
 
 export const handleSaveCredential = async (authUser: any, payload: any) => {
-    if (!authUser?.uid || !state.cachedMasterKey) return;
+    const cachedMasterKey = await state.cachedMasterKey;
+    if (!authUser?.uid || !cachedMasterKey) return;
 
     try {
         await addVault({
             userId: authUser.uid,
-            masterKey: state.cachedMasterKey,
+            masterKey: cachedMasterKey,
             vaultData: payload
         });
 
-        state.cachedVaults = await getVaults(authUser.uid, state.cachedMasterKey);
+        // Update caches
+        const vaults = await getVaults(authUser.uid, cachedMasterKey);
+        await state.setVaults(vaults);
+
+        const raw = await getRawVaults(authUser.uid);
+        await state.setEncryptedVaults(raw);
 
         chrome.notifications.create({
             type: "basic",

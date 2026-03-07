@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Vault",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Securely autofill passwords and save credentials locally.",
     "icons": {
         "16": "icon16.png",

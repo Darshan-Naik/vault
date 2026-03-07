@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getVaults } from '@vault/shared';
 import { Header } from './components/Header';
 import { LockedView } from './components/LockedView';
 import { UnlockedView } from './components/UnlockedView';
 import { PromptView } from './components/PromptView';
 import { useAuth } from './hooks/useAuth';
 import { useVault } from './hooks/useVault';
+import { ExtensionAction } from './types/actions';
+import { messenger } from './utils/messenger';
 
 const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,7 +27,6 @@ const App: React.FC = () => {
   const {
     isUnlocked,
     setIsUnlocked,
-    sessionMasterKey,
     setSessionMasterKey,
     matchedCredentials,
     refresh: refreshSession
@@ -41,7 +41,7 @@ const App: React.FC = () => {
       setCurrentHostname(hostParam);
       // If in popup mode, tell the content script we are ready
       if (isPopupMode && targetTabId) {
-        chrome.tabs.sendMessage(targetTabId, { action: "PROMPT_READY" });
+        chrome.tabs.sendMessage(targetTabId, { action: ExtensionAction.PROMPT_READY });
       }
     } else {
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -57,12 +57,13 @@ const App: React.FC = () => {
     }
   }, [isPopupMode, targetTabId]);
 
-  // 3. Fetch all vaults when unlocked
   useEffect(() => {
-    if (isUnlocked && user && sessionMasterKey) {
-      getVaults(user.uid, sessionMasterKey).then(setAllVaults);
+    if (isUnlocked) {
+      messenger.getAllVaults().then((resp) => {
+        if (resp?.vaults) setAllVaults(resp.vaults);
+      });
     }
-  }, [isUnlocked, user, sessionMasterKey]);
+  }, [isUnlocked]);
 
   // 4. Filtered list for search
   const otherVaults = useMemo(() => {
@@ -77,30 +78,28 @@ const App: React.FC = () => {
   // 5. Handlers
   const handleUnlock = (password: string) => {
     setIsUnlocking(true);
-    chrome.runtime.sendMessage({
-      action: "UNLOCK_AND_GET_CREDENTIAL",
-      payload: { masterPassword: password, hostname: currentHostname }
-    }, (response) => {
-      setIsUnlocking(false);
-      if (response?.success) {
-        // If we have matches and it was an "Unlock & Fill" intent, autofill the first one
-        if (response.credentials && response.credentials.length > 0) {
-          handleUseCredential(response.credentials[0]);
+    messenger.unlockAndGet({ masterPassword: password, hostname: currentHostname })
+      .then((response) => {
+        setIsUnlocking(false);
+        if (response?.success) {
+          // If we have matches and it was an "Unlock & Fill" intent, autofill the first one
+          if (response.credentials && response.credentials.length > 0) {
+            handleUseCredential(response.credentials[0]);
+          } else {
+            refreshSession();
+          }
         } else {
-          refreshSession();
+          alert(response?.error || "Unlock failed");
         }
-      } else {
-        alert(response?.error || "Unlock failed");
-      }
-    });
+      });
   };
 
   const handleUseCredential = (cred: any) => {
     const finalTabId = targetTabId;
-    chrome.runtime.sendMessage({ action: "GET_SESSION_STATE" }, (resp) => {
+    messenger.getSessionState().then((resp) => {
       if (resp.isUnlocked) {
         const sendAutofill = (tabId: number) => {
-          chrome.tabs.sendMessage(tabId, { action: "FORCE_AUTOFILL", payload: cred });
+          chrome.tabs.sendMessage(tabId, { action: ExtensionAction.FORCE_AUTOFILL, payload: cred });
           window.close();
         };
 
@@ -116,7 +115,7 @@ const App: React.FC = () => {
   };
 
   const handleLock = () => {
-    chrome.runtime.sendMessage({ action: "SYNC_VAULT_LOCK" }, () => {
+    messenger.lockVault().then(() => {
       setIsUnlocked(false);
       setSessionMasterKey(null);
       setAllVaults([]);
@@ -156,12 +155,10 @@ const App: React.FC = () => {
   const isCompact = isPopupMode && !showFullVault;
 
   return (
-    <div className={`${isCompact ? 'h-[340px]' : 'h-[450px]'} w-[320px] bg-neutral-950 text-neutral-100 flex flex-col font-sans overflow-hidden border border-neutral-800 shadow-2xl rounded-xl`}>
+    <div className={`${isCompact ? 'h-[300px]' : 'h-[450px]'} w-[320px] bg-neutral-950 text-neutral-100 flex flex-col font-sans overflow-hidden border border-neutral-800 shadow-2xl`}>
       {!isCompact && (
         <Header
           isUnlocked={isUnlocked}
-          isPopupMode={isPopupMode}
-          onDismiss={() => window.close()}
           onLock={handleLock}
           onOpenApp={handleOpenApp}
         />
@@ -172,16 +169,13 @@ const App: React.FC = () => {
           currentHostname={currentHostname}
           hasMatches={matchedCredentials.length > 0}
           isUnlocking={isUnlocking}
-          isPopupMode={isPopupMode}
           onUnlock={handleUnlock}
-          onDismiss={() => window.close()}
         />
       ) : isPopupMode && !showFullVault ? (
         <PromptView
           currentHostname={currentHostname}
           matchedCredentials={matchedCredentials}
           onUseCredential={handleUseCredential}
-          onDismiss={() => window.close()}
           onOpenFullVault={() => setShowFullVault(true)}
         />
       ) : (

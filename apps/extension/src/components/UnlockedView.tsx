@@ -26,7 +26,7 @@ export const UnlockedView: React.FC<UnlockedViewProps> = ({
                         placeholder="Search your vault..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-neutral-950 border border-neutral-800 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all"
+                        className="w-full bg-neutral-950 border border-neutral-800 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:ring-1 focus:ring-emerald-500/50 transition-all font-medium"
                     />
                 </div>
             </div>
@@ -75,9 +75,9 @@ export const UnlockedView: React.FC<UnlockedViewProps> = ({
 };
 
 const CredentialItem = ({ cred, onUse, isMatch }: any) => (
-    <div className={`group relative flex items-center justify-between p-3 rounded-lg border transition-all ${isMatch
+    <div className={`group relative flex items-center justify-between p-3 rounded-2xl border transition-all ${isMatch
         ? 'bg-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40'
-        : 'hover:bg-neutral-800/50 border-transparent hover:border-neutral-700/50'
+        : 'hover:bg-neutral-800/50 border-transparent hover:border-neutral-700/50 shadow-sm'
         }`}>
         <div className="flex items-center gap-3 min-w-0">
             <div className={`h-10 w-10 rounded-lg flex items-center justify-center transition-colors shrink-0 ${isMatch ? 'bg-emerald-500/10 text-emerald-500' : 'bg-neutral-800 text-neutral-400 group-hover:text-emerald-500'
@@ -95,7 +95,7 @@ const CredentialItem = ({ cred, onUse, isMatch }: any) => (
         <div className="flex items-center gap-1">
             <button
                 onClick={onUse}
-                className={`py-1 px-2 italic items-center flex gap-2 rounded-lg transition-all shadow-sm ${isMatch ? 'bg-emerald-600 text-white' : 'bg-neutral-800/50 text-neutral-400 hover:bg-emerald-600 hover:text-white'
+                className={`py-1.5 px-3 italic items-center flex gap-2 rounded-full transition-all shadow-sm text-[10px] font-bold uppercase tracking-wider ${isMatch ? 'bg-emerald-600 text-white' : 'bg-neutral-800/50 text-neutral-400 hover:bg-emerald-600 hover:text-white'
                     }`}
                 title="Autofill"
             >
