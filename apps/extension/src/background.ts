@@ -84,7 +84,12 @@ const Handlers: Record<string, (request: any, sender: chrome.runtime.MessageSend
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const handler = Handlers[request.action];
     if (handler) {
-        handler(request, sender).then(sendResponse);
+        handler(request, sender)
+            .then(sendResponse)
+            .catch(err => {
+                console.error(`Error in handler for ${request.action}:`, err);
+                sendResponse({ success: false, error: err.message || String(err) });
+            });
         return true; // Keep channel open for async response
     }
     return false;
