@@ -90,7 +90,7 @@ function Auth() {
               <span>How we protect your data</span>
             </button>
             <a
-              href="/privacy.html"
+              href="/privacy"
               target="_blank"
               rel="noopener noreferrer"
               className="text-[10px] text-muted-foreground hover:text-primary text-center uppercase tracking-widest font-bold transition-colors"

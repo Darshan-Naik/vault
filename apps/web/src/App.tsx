@@ -21,6 +21,12 @@ function App() {
   const { user, loading: authLoading } = useAuth();
   const { isLocked } = useLock();
   const { isLoading: vaultKeyLoading, isSetup, isUnlocked } = useVaultKey();
+  const pathname = window.location.pathname;
+
+  // Handle privacy policy path specially to prevent SPA from hijacking static file
+  if (pathname === '/privacy' || pathname === '/privacy.html') {
+    return null; // Let the browser handle the static file if possible, or just don't render Auth
+  }
 
   // Show loading screen while checking auth or vault key status
   if (authLoading || (user && vaultKeyLoading)) {
