@@ -1,14 +1,8 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useVaultKey } from "../VaultKeyProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Eye,
   EyeOff,
@@ -19,19 +13,16 @@ import {
   AlertTriangle,
   Shield,
   Timer,
+  ChevronLeft,
 } from "lucide-react";
 import { toast } from "sonner";
-
-type Props = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-};
 
 type Tab = "password" | "recovery";
 
 const LOCK_DURATION = 30; // 30 seconds
 
-function SecuritySettings({ open, onOpenChange }: Props) {
+export default function SecuritySettingsContent() {
+  const navigate = useNavigate();
   const { changePassword, resetRecoveryKey } = useVaultKey();
 
   const [tab, setTab] = useState<Tab>("password");
@@ -55,7 +46,7 @@ function SecuritySettings({ open, onOpenChange }: Props) {
   const [copied, setCopied] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
-  // 60-second lock for recovery key
+  // 30-second lock for recovery key
   const [countdown, setCountdown] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
 
@@ -94,16 +85,6 @@ function SecuritySettings({ open, onOpenChange }: Props) {
     setIsLocked(false);
   };
 
-  const handleClose = () => {
-    // Prevent closing if recovery key is shown and locked
-    if (newRecoveryKey && isLocked) {
-      return;
-    }
-    resetPasswordForm();
-    resetRecoveryForm();
-    onOpenChange(false);
-  };
-
   const handleChangePassword = async () => {
     setPasswordError("");
 
@@ -124,7 +105,7 @@ function SecuritySettings({ open, onOpenChange }: Props) {
       if (success) {
         toast.success("Password changed successfully");
         resetPasswordForm();
-        onOpenChange(false);
+        navigate(-1);
       } else {
         setPasswordError("Incorrect current password");
       }
@@ -144,7 +125,6 @@ function SecuritySettings({ open, onOpenChange }: Props) {
       const newKey = await resetRecoveryKey(recoveryPassword);
       if (newKey) {
         setNewRecoveryKey(newKey);
-        // Start 60-second lock
         setCountdown(LOCK_DURATION);
         setIsLocked(true);
       } else {
@@ -177,7 +157,7 @@ function SecuritySettings({ open, onOpenChange }: Props) {
   const handleFinishRecoveryReset = () => {
     toast.success("Recovery key has been reset");
     resetRecoveryForm();
-    onOpenChange(false);
+    navigate(-1);
   };
 
   const formatTime = (seconds: number) => {
@@ -189,50 +169,43 @@ function SecuritySettings({ open, onOpenChange }: Props) {
   const canFinishRecovery = !isLocked && confirmed;
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent
-        className="sm:max-w-md max-h-[90vh] overflow-y-auto"
-        onPointerDownOutside={(e) => {
-          // Prevent closing by clicking outside if recovery key is shown and locked
-          if (newRecoveryKey && isLocked) {
-            e.preventDefault();
-          }
-        }}
-        onEscapeKeyDown={(e) => {
-          // Prevent closing by escape key if recovery key is shown and locked
-          if (newRecoveryKey && isLocked) {
-            e.preventDefault();
-          }
-        }}
-      >
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center">
-              <Shield className="w-4 h-4 text-foreground" />
-            </div>
-            <div>
-              <DialogTitle className="text-lg">Security Settings</DialogTitle>
-              <DialogDescription className="text-sm">
-                Manage your vault password and recovery key
-              </DialogDescription>
-            </div>
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-lg mx-auto px-6 py-8">
+        {/* Page header */}
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => {
+              if (newRecoveryKey && isLocked) return;
+              navigate(-1);
+            }}
+            className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-card/80 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <div className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center">
+            <Shield className="w-4 h-4 text-foreground" />
           </div>
-        </DialogHeader>
+          <div>
+            <h1 className="text-lg font-semibold">Security Settings</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your vault password and recovery key
+            </p>
+          </div>
+        </div>
 
         {/* Tabs - hide when showing recovery key */}
         {!newRecoveryKey && (
-          <div className="flex gap-1 p-1 bg-muted/50 rounded-lg">
+          <div className="flex gap-1 p-1 bg-muted/50 rounded-lg mb-6">
             <button
               onClick={() => {
                 setTab("password");
                 resetRecoveryForm();
               }}
               disabled={isChangingPassword || isResettingRecovery}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                tab === "password"
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${tab === "password"
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               <Lock className="w-4 h-4" />
               Password
@@ -243,11 +216,10 @@ function SecuritySettings({ open, onOpenChange }: Props) {
                 resetPasswordForm();
               }}
               disabled={isChangingPassword || isResettingRecovery}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                tab === "recovery"
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${tab === "recovery"
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               <Key className="w-4 h-4" />
               Recovery Key
@@ -257,7 +229,7 @@ function SecuritySettings({ open, onOpenChange }: Props) {
 
         {/* Password Tab */}
         {tab === "password" && (
-          <div className="space-y-4 py-2">
+          <div className="space-y-4">
             <div>
               <label className="text-sm font-medium text-foreground mb-2 block">
                 Current Password
@@ -367,7 +339,7 @@ function SecuritySettings({ open, onOpenChange }: Props) {
 
         {/* Recovery Key Tab */}
         {tab === "recovery" && (
-          <div className="space-y-4 py-2">
+          <div className="space-y-4">
             {!newRecoveryKey ? (
               <>
                 <div className="flex items-start gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
@@ -435,17 +407,17 @@ function SecuritySettings({ open, onOpenChange }: Props) {
               <>
                 {/* Timer Warning */}
                 {isLocked && (
-                  <div className="flex items-center justify-center gap-2 p-2 sm:p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
                     <Timer className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                    <span className="text-xs sm:text-sm font-medium text-amber-500">
-                      Please wait {formatTime(countdown)} before closing
+                    <span className="text-sm font-medium text-amber-500">
+                      Please wait {formatTime(countdown)} before leaving
                     </span>
                   </div>
                 )}
 
-                <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                  <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-destructive flex-shrink-0 mt-0.5" />
-                  <div className="text-xs sm:text-sm text-destructive">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-destructive">
                     <p className="font-medium mb-1">Zero-Knowledge Security</p>
                     <p>
                       Save this key now. It will not be shown again. Without it,
@@ -455,42 +427,42 @@ function SecuritySettings({ open, onOpenChange }: Props) {
                 </div>
 
                 <div>
-                  <label className="text-xs sm:text-sm font-medium text-foreground mb-2 block">
+                  <label className="text-sm font-medium text-foreground mb-2 block">
                     Your New Recovery Key
                   </label>
                   <div className="relative">
-                    <div className="p-2 sm:p-3 pr-14 sm:pr-20 rounded-lg bg-muted/50 border border-border font-mono text-xs sm:text-sm break-all select-all">
+                    <div className="p-3 pr-20 rounded-lg bg-muted/50 border border-border font-mono text-sm break-all select-all">
                       {newRecoveryKey}
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 h-7 sm:h-8 text-xs sm:text-sm px-2 sm:px-3"
+                      className="absolute top-2 right-2 h-8 text-sm px-3"
                       onClick={handleCopyRecoveryKey}
                     >
                       {copied ? (
                         <>
-                          <Check className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                          <span className="hidden sm:inline">Copied</span>
+                          <Check className="w-4 h-4 mr-1" />
+                          Copied
                         </>
                       ) : (
                         <>
-                          <Copy className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
-                          <span className="hidden sm:inline">Copy</span>
+                          <Copy className="w-4 h-4 mr-1" />
+                          Copy
                         </>
                       )}
                     </Button>
                   </div>
                 </div>
 
-                <label className="flex items-start gap-2 sm:gap-3 cursor-pointer">
+                <label className="flex items-start gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={confirmed}
                     onChange={(e) => setConfirmed(e.target.checked)}
-                    className="mt-0.5 sm:mt-1 w-4 h-4 rounded border-border text-primary focus:ring-primary flex-shrink-0"
+                    className="mt-1 w-4 h-4 rounded border-border text-primary focus:ring-primary flex-shrink-0"
                   />
-                  <span className="text-xs sm:text-sm text-muted-foreground">
+                  <span className="text-sm text-muted-foreground">
                     I have saved my new recovery key in a safe place.
                   </span>
                 </label>
@@ -498,7 +470,7 @@ function SecuritySettings({ open, onOpenChange }: Props) {
                 <Button
                   onClick={handleFinishRecoveryReset}
                   disabled={!canFinishRecovery}
-                  className="w-full h-9 sm:h-10 text-sm"
+                  className="w-full h-10 text-sm"
                 >
                   {isLocked ? (
                     <div className="flex items-center gap-2">
@@ -513,9 +485,7 @@ function SecuritySettings({ open, onOpenChange }: Props) {
             )}
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }
-
-export default SecuritySettings;

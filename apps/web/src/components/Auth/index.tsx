@@ -1,15 +1,14 @@
 import { useState } from "react";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { auth } from "@vault/shared";
 import { Shield, ShieldCheck } from "lucide-react";
-import SecurityInfo from "@/components/SecurityInfo";
 
 function Auth() {
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
-  const [securityInfoOpen, setSecurityInfoOpen] = useState(false);
 
   const provider: GoogleAuthProvider = new GoogleAuthProvider();
 
@@ -81,30 +80,22 @@ function Auth() {
 
           {/* Security info */}
           <div className="mt-6 pt-6 border-t border-border flex flex-col gap-4">
-            <button
-              type="button"
-              onClick={() => setSecurityInfoOpen(true)}
+            <Link
+              to="/security"
               className="w-full flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ShieldCheck className="w-4 h-4" />
               <span>How we protect your data</span>
-            </button>
-            <a
-              href="/privacy"
-              target="_blank"
-              rel="noopener noreferrer"
+            </Link>
+            <Link
+              to="/privacy"
               className="text-[10px] text-muted-foreground hover:text-primary text-center uppercase tracking-widest font-bold transition-colors"
             >
               Privacy Policy
-            </a>
+            </Link>
           </div>
         </div>
       </div>
-
-      <SecurityInfo
-        open={securityInfoOpen}
-        onOpenChange={setSecurityInfoOpen}
-      />
 
       {/* Error toast */}
       {error && (

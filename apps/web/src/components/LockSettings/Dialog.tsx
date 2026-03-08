@@ -1,13 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLock } from "../LockProvider";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { PinInput } from "@/components/ui/pin-input";
 import {
   Lock,
@@ -17,24 +11,18 @@ import {
   Scan,
   Check,
   X,
+  ChevronLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getBiometricName } from "@vault/shared";
-
-interface LockSettingsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
 
 export function ButtonLabel() {
   const { hasLockKey } = useLock();
   return <>{hasLockKey ? "Update PIN" : "Set PIN"}</>;
 }
 
-export default function LockSettingsDialog({
-  open,
-  onOpenChange,
-}: LockSettingsDialogProps) {
+export default function LockSettingsContent() {
+  const navigate = useNavigate();
   const {
     hasLockKey,
     setLockKey,
@@ -57,12 +45,9 @@ export default function LockSettingsDialog({
     setError("");
   }, []);
 
-  // Reset form when dialog closes
   useEffect(() => {
-    if (!open) {
-      resetForm();
-    }
-  }, [open, resetForm]);
+    return () => resetForm();
+  }, [resetForm]);
 
   const handleSavePin = async () => {
     setError("");
@@ -82,7 +67,7 @@ export default function LockSettingsDialog({
       toast.success(
         hasLockKey ? "PIN updated successfully" : "PIN set successfully"
       );
-      onOpenChange(false);
+      navigate(-1);
       resetForm();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save PIN");
@@ -113,9 +98,8 @@ export default function LockSettingsDialog({
       const message =
         err instanceof Error
           ? err.message
-          : `Failed to ${
-              isBiometricEnabled ? "disable" : "enable"
-            } ${biometricName}`;
+          : `Failed to ${isBiometricEnabled ? "disable" : "enable"
+          } ${biometricName}`;
       setError(message);
       toast.error(message);
     } finally {
@@ -124,25 +108,30 @@ export default function LockSettingsDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center">
-              <Lock className="w-4 h-4 text-foreground" />
-            </div>
-            <div>
-              <DialogTitle className="text-lg">
-                {hasLockKey ? "Update PIN" : "Set Lock PIN"}
-              </DialogTitle>
-              <DialogDescription className="text-sm">
-                Quick unlock when returning to the app
-              </DialogDescription>
-            </div>
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-lg mx-auto px-6 py-8">
+        {/* Page header */}
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-8 h-8 rounded-lg bg-card border border-border flex items-center justify-center hover:bg-card/80 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <div className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center">
+            <Lock className="w-4 h-4 text-foreground" />
           </div>
-        </DialogHeader>
+          <div>
+            <h1 className="text-lg font-semibold">
+              {hasLockKey ? "Update PIN" : "Set Lock PIN"}
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Quick unlock when returning to the app
+            </p>
+          </div>
+        </div>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-6">
           <div className="space-y-3">
             <label className="text-xs font-medium text-muted-foreground text-center block">
               {hasLockKey ? "New PIN" : "Enter PIN"}
@@ -242,7 +231,7 @@ export default function LockSettingsDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => navigate(-1)}
               className="flex-1"
             >
               Cancel
@@ -257,7 +246,7 @@ export default function LockSettingsDialog({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 }

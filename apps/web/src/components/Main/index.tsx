@@ -1,37 +1,46 @@
-import Header from "./Header";
 import { useAuth } from "../AuthProvider";
 import { useVaultKey } from "../VaultKeyProvider";
 import { useVaults } from "@vault/shared";
 import VaultList from "./VaultList";
-import AddNew from "./AddNew";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { TVault } from "@vault/shared";
 import Vault from "./Vault";
 import { Shield, Lock, Plus } from "lucide-react";
 import { cn } from "@vault/shared";
 import { toast } from "sonner";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const Main = () => {
-  const [selectedVault, setSelectedVault] = useState<TVault>();
+  const { id: vaultId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [isEdit, setIsEdit] = useState(false);
 
   const { user } = useAuth();
   const { masterKey } = useVaultKey();
   const { data: vaults, isLoading } = useVaults(user?.uid, masterKey);
 
+  // Derive selected vault from URL param
+  const selectedVault = useMemo(
+    () => vaults?.find((v) => v.id === vaultId),
+    [vaults, vaultId]
+  );
+
   const handleVaultSelect = (vault?: TVault, force?: boolean) => {
     if (isEdit && !force) {
       toast.message("Please save the changes");
       return;
     }
-    setSelectedVault(vault);
+    if (vault) {
+      navigate(`/vault/${vault.id}`);
+    } else {
+      navigate("/");
+    }
     setIsEdit(false);
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden w-screen bg-background">
-      <Header />
-
+    <div className="h-full flex flex-col overflow-hidden w-full bg-background">
       <div className="flex-1 flex overflow-hidden relative">
         {/* Sidebar */}
         <aside
@@ -43,7 +52,17 @@ const Main = () => {
         >
           {/* Sidebar header with Add button */}
           <div className="px-6 py-5 space-y-4 border-b border-border">
-            <AddNew />
+            <Button
+              variant="default"
+              size="default"
+              className="w-full gap-2 h-9 text-sm"
+              asChild
+            >
+              <Link to="/new">
+                <Plus className="h-3.5 w-3.5" />
+                <span>New Vault</span>
+              </Link>
+            </Button>
           </div>
 
           {/* Vault list */}
