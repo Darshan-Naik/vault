@@ -34,9 +34,7 @@
     ],
     "permissions": [
         "storage",
-        "activeTab",
         "tabs",
-        "scripting",
         "notifications"
     ],
     "host_permissions": [
@@ -45,7 +43,6 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "index.html",
                 "assets/*"
             ],
             "matches": [

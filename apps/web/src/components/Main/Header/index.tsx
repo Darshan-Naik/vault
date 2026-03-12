@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { signOut } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
@@ -17,6 +17,7 @@ import {
   ChevronDown,
   KeyRound,
   ShieldCheck,
+  Puzzle,
 } from "lucide-react";
 import { ButtonLabel } from "@/components/LockSettings/Dialog";
 
@@ -43,6 +44,14 @@ const Header = () => {
     setPopoverOpen(false);
     navigate("/security");
   };
+
+  const isExtensionSupported = useMemo(() => {
+    const ua = navigator.userAgent;
+    const isChromium = /Chrome|HeadlessChrome|Chromium|Edg/.test(ua);
+    const isMobile =
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+    return isChromium && !isMobile;
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/90 backdrop-blur-2xl shadow-sm">
@@ -129,6 +138,22 @@ const Header = () => {
                 <ShieldCheck className="w-4 h-4" />
                 How Security Works
               </Button>
+
+              {isExtensionSupported && (
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-2.5 h-9 px-2.5 text-sm"
+                  onClick={() =>
+                    window.open(
+                      "https://chromewebstore.google.com/detail/Vault/aefldlopmplejcbmhchabkickemoedjk",
+                      "_blank"
+                    )
+                  }
+                >
+                  <Puzzle className="w-4 h-4" />
+                  Browser Extension
+                </Button>
+              )}
 
               <div className="h-px bg-border my-1" />
 
