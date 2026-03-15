@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: "prompt",
+      registerType: "autoUpdate",
       injectRegister: "script",
       includeAssets: ["logo.jpeg"],
       manifest: {
@@ -47,7 +47,7 @@ export default defineConfig({
       },
       workbox: {
         navigationPreload: true,
-        globPatterns: ["**/*.{js,css,html}"],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpeg,webmanifest}"],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

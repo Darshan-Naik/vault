@@ -12,7 +12,7 @@ import { registerSW } from "virtual:pwa-register";
 
 
 registerSW({
-  immediate: false,
+  immediate: true,
 });
 
 createRoot(document.getElementById("root")!).render(
