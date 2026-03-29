@@ -184,6 +184,11 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
     setMasterKey(newMasterKey);
   }, []);
 
+  // Unlock with a known master key (used for biometric unlock)
+  const unlockWithMasterKey = useCallback((key: string) => {
+    setMasterKey(key);
+  }, []);
+
   // Validate recovery key without unlocking
   const validateRecoveryKey = useCallback(
     async (recoveryKey: string): Promise<boolean> => {
@@ -232,6 +237,7 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
     confirmSetup,
     unlock,
     lock,
+    unlockWithMasterKey,
     changePassword,
     resetRecoveryKey,
     resetPasswordWithRecovery,

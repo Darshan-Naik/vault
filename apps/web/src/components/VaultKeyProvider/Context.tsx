@@ -40,6 +40,9 @@ export type VaultKeyContextType = {
   // Called after user saves recovery key during password reset flow
   confirmPasswordReset: (masterKey: string) => void;
 
+  // Unlock with a known master key (used for biometric unlock)
+  unlockWithMasterKey: (masterKey: string) => void;
+
   // Validate recovery key without unlocking
   validateRecoveryKey: (recoveryKey: string) => Promise<boolean>;
 };
@@ -53,6 +56,7 @@ export const VaultKeyContext = createContext<VaultKeyContextType>({
   confirmSetup: async () => {},
   unlock: async () => false,
   lock: () => {},
+  unlockWithMasterKey: () => {},
   changePassword: async () => false,
   resetRecoveryKey: async () => null,
   resetPasswordWithRecovery: async () => null,

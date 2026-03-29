@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLock } from "../LockProvider";
+import { useVaultKey } from "../VaultKeyProvider";
+import { useAuth } from "../AuthProvider";
 import { Button } from "@/components/ui/button";
 import { PinInput } from "@/components/ui/pin-input";
 import {
@@ -14,7 +16,7 @@ import {
   ChevronLeft,
 } from "lucide-react";
 import { toast } from "sonner";
-import { getBiometricName } from "@vault/shared";
+import { getBiometricName, saveMasterKeyLocally, clearMasterKeyLocally } from "@vault/shared";
 
 export function ButtonLabel() {
   const { hasLockKey } = useLock();
@@ -23,6 +25,8 @@ export function ButtonLabel() {
 
 export default function LockSettingsContent() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { masterKey } = useVaultKey();
   const {
     hasLockKey,
     setLockKey,
@@ -81,17 +85,29 @@ export default function LockSettingsContent() {
   };
 
   const handleToggleBiometric = async () => {
+    if (!user?.uid) return;
+    
     setIsBiometricLoading(true);
     setError("");
 
     try {
       if (isBiometricEnabled) {
         await disableBiometric();
+        await clearMasterKeyLocally(user.uid);
         toast.success(`${biometricName} disabled`);
       } else {
-        const success = await enableBiometric();
-        if (success) {
-          toast.success(`${biometricName} enabled`);
+        const entropy = await enableBiometric();
+        if (entropy) {
+          if (masterKey) {
+            await saveMasterKeyLocally(user.uid, masterKey, entropy);
+            toast.success(`${biometricName} enabled with hardware-backed encryption`);
+          } else {
+            // This shouldn't happen in settings, but good to handle
+            toast.error("Vault must be unlocked to enable biometric encryption");
+            await disableBiometric();
+          }
+        } else {
+          toast.error(`${biometricName} hardware-backed encryption is not supported on this device. Biometric unlock disabled.`);
         }
       }
     } catch (err) {

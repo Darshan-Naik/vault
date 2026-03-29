@@ -12,9 +12,9 @@ export const LockContext = createContext<{
   // Biometric authentication
   isBiometricAvailable: boolean;
   isBiometricEnabled: boolean;
-  enableBiometric: () => Promise<boolean>;
+  enableBiometric: () => Promise<ArrayBuffer | null>;
   disableBiometric: () => Promise<void>;
-  unlockWithBiometric: () => Promise<boolean>;
+  unlockWithBiometric: () => Promise<string | boolean>;
 }>({
   isLocked: false,
   unlock: () => false,
@@ -27,7 +27,7 @@ export const LockContext = createContext<{
   // Biometric authentication defaults
   isBiometricAvailable: false,
   isBiometricEnabled: false,
-  enableBiometric: async () => false,
+  enableBiometric: async () => null,
   disableBiometric: async () => {},
   unlockWithBiometric: async () => false,
 });

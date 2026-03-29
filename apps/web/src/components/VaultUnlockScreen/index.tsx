@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useVaultKey } from "../VaultKeyProvider";
 import { useLock } from "../LockProvider";
 import PasswordUnlock from "./PasswordUnlock";
@@ -9,13 +9,24 @@ type Mode = "password" | "recovery";
 function VaultUnlockScreen() {
   const {
     unlock,
+    unlockWithMasterKey,
     resetPasswordWithRecovery,
     confirmPasswordReset,
     validateRecoveryKey,
   } = useVaultKey();
-  const { bypassLock } = useLock();
+  const { bypassLock, isBiometricEnabled, unlockWithBiometric } = useLock();
 
   const [mode, setMode] = useState<Mode>("password");
+  const hasTriggeredRef = useRef(false);
+
+  // Auto-trigger biometric on mount if enabled
+  useEffect(() => {
+    if (isBiometricEnabled && mode === "password" && !hasTriggeredRef.current) {
+      hasTriggeredRef.current = true;
+      handleBiometricUnlock();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isBiometricEnabled, mode]);
 
   const handleUnlock = async (password: string): Promise<boolean> => {
     const success = await unlock(password);
@@ -24,6 +35,18 @@ function VaultUnlockScreen() {
       bypassLock();
     }
     return success;
+  };
+
+  const handleBiometricUnlock = async (): Promise<boolean> => {
+    const result = await unlockWithBiometric();
+    if (result) {
+      if (typeof result === "string") {
+        unlockWithMasterKey(result);
+      }
+      bypassLock();
+      return true;
+    }
+    return false;
   };
 
   const handleValidateRecoveryKey = async (
@@ -62,6 +85,8 @@ function VaultUnlockScreen() {
     <PasswordUnlock
       onUnlock={handleUnlock}
       onForgotPassword={() => setMode("recovery")}
+      isBiometricEnabled={isBiometricEnabled}
+      onBiometricUnlock={handleBiometricUnlock}
     />
   );
 }

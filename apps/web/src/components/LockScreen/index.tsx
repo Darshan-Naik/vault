@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLock } from "../LockProvider";
+import { useVaultKey } from "../VaultKeyProvider";
 import { PinInput } from "@/components/ui/pin-input";
 import {
   Lock,
@@ -22,28 +23,27 @@ import { Button } from "@/components/ui/button";
 function LockScreen() {
   const { unlock, resetLockKey, isBiometricEnabled, unlockWithBiometric } =
     useLock();
+  const { unlockWithMasterKey } = useVaultKey();
   const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [shake, setShake] = useState(false);
   const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+  const hasTriggeredRef = useRef(false);
 
   const biometricName = getBiometricName();
   const isFaceId = biometricName === "Face ID";
 
-  // Check if device is mobile (auto-trigger biometric only on mobile)
-  const isMobileDevice = () => {
-    return /iphone|ipad|android|mobile/i.test(navigator.userAgent);
-  };
-
-  // Auto-trigger biometric on mount only on mobile devices
+  // Auto-trigger biometric on mount if enabled
   useEffect(() => {
-    if (isBiometricEnabled && isMobileDevice()) {
+    console.log("Biometric unlock triggered");
+
+    if (isBiometricEnabled && !hasTriggeredRef.current) {
+      hasTriggeredRef.current = true;
       handleBiometricUnlock();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isBiometricEnabled]);
 
   const handleBiometricUnlock = async () => {
     if (!isBiometricEnabled || isBiometricLoading) return;
@@ -52,11 +52,14 @@ function LockScreen() {
     setError("");
 
     try {
-      const success = await unlockWithBiometric();
-      if (!success) {
+      const result = await unlockWithBiometric();
+      if (!result) {
         setError(
           `${biometricName} authentication failed. Please use your PIN.`
         );
+      } else if (typeof result === "string") {
+        // Biometric unlock provided a master key
+        unlockWithMasterKey(result);
       }
     } catch {
       setError(`${biometricName} authentication failed. Please use your PIN.`);
@@ -119,9 +122,8 @@ function LockScreen() {
 
           {/* PIN Input */}
           <div
-            className={`transition-all duration-300 ${
-              shake ? "animate-shake" : ""
-            }`}
+            className={`transition-all duration-300 ${shake ? "animate-shake" : ""
+              }`}
           >
             <PinInput
               value={pin}

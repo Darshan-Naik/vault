@@ -131,15 +131,15 @@ export const deleteBiometricCredential = async (
   }
 };
 
-// Register biometric credential (Face ID/fingerprint enrollment)
+// Register biometric credential (Face ID/fingerprint enrollment) with PRF support
 export const registerBiometric = async (
   userId: string,
   userName: string
-): Promise<boolean> => {
+): Promise<ArrayBuffer | null> => {
   try {
     const challenge = generateChallenge();
 
-    // Create credential options
+    // Create credential options with PRF extension
     const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions =
       {
         challenge,
@@ -161,6 +161,9 @@ export const registerBiometric = async (
           userVerification: "required",
           residentKey: "preferred",
         },
+        extensions: {
+          prf: {}, // Request PRF (Pseudo-Random Function) support
+        } as any,
         timeout: 60000,
         attestation: "none",
       };
@@ -174,11 +177,24 @@ export const registerBiometric = async (
       throw new Error("Failed to create credential");
     }
 
+    // Check if PRF was actually enabled and get results
+    const extensionResults = credential.getClientExtensionResults() as any;
+    let entropy: ArrayBuffer | null = null;
+    
+    if (extensionResults.prf && extensionResults.prf.enabled) {
+      // In some implementations, the creation ceremony might also return a first result
+      // but usually we might need to authenticate immediately after to get it,
+      // OR the PRF extension might provide it in 'results' if supported.
+      if (extensionResults.prf.results && extensionResults.prf.results.first) {
+        entropy = extensionResults.prf.results.first;
+      }
+    }
+
     // Store credential ID
     const credentialId = arrayBufferToBase64(credential.rawId);
     await saveBiometricCredential(userId, credentialId);
 
-    return true;
+    return entropy || new ArrayBuffer(0); // Return empty buffer if PRF enabled but no immediate result
   } catch (error) {
     console.error("Error registering biometric:", error);
     if (error instanceof Error) {
@@ -195,19 +211,22 @@ export const registerBiometric = async (
   }
 };
 
-// Authenticate using biometric (Face ID/fingerprint verification)
-// Supports multiple device credentials - will try to match any registered device
+// Fixed salt for PRF key derivation
+const PRF_SALT = new TextEncoder().encode("vault-app-biometric-salt-v1");
+
+// Authenticate using biometric and derive PRF entropy
+// Returns entropy (ArrayBuffer) on success, or null on failure
 export const authenticateWithBiometric = async (
   credentialIds: string[]
-): Promise<boolean> => {
+): Promise<ArrayBuffer | null> => {
   if (credentialIds.length === 0) {
-    return false;
+    return null;
   }
 
   try {
     const challenge = generateChallenge();
 
-    // Create authentication options with all registered credentials
+    // Create authentication options with all registered credentials and PRF evaluation
     const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions =
       {
         challenge,
@@ -217,6 +236,13 @@ export const authenticateWithBiometric = async (
           transports: ["internal" as const],
         })),
         userVerification: "required",
+        extensions: {
+          prf: {
+            eval: {
+              first: PRF_SALT,
+            },
+          },
+        } as any,
         timeout: 60000,
       };
 
@@ -226,16 +252,25 @@ export const authenticateWithBiometric = async (
     })) as PublicKeyCredential | null;
 
     if (!assertion) {
-      return false;
+      return null;
     }
 
-    // If we got here, biometric verification was successful
-    return true;
+    // Get PRF extension results
+    const extensionResults = assertion.getClientExtensionResults() as any;
+    if (extensionResults.prf && extensionResults.prf.results) {
+      // Return the derived entropy (first.results)
+      return extensionResults.prf.results.first;
+    }
+
+    // Fallback: If PRF is not supported but biometric auth succeeded, 
+    // we return a special symbol or just null if the user wants hard-lock only
+    console.warn("Biometric auth succeeded but PRF results are missing");
+    return null;
   } catch (error) {
     console.error("Error authenticating with biometric:", error);
     if (error instanceof Error && error.name === "NotAllowedError") {
       // User cancelled or verification failed
-      return false;
+      return null;
     }
     throw error;
   }

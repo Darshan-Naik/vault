@@ -16,6 +16,7 @@ import {
   registerBiometric,
   deleteBiometricCredential,
   authenticateWithBiometric,
+  loadMasterKeyLocally,
 } from "@vault/shared";
 import { signOut } from "firebase/auth";
 
@@ -156,7 +157,7 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
   }, [user?.uid, biometricCredentialIds.length]);
 
   // Enable biometric authentication (registers this device)
-  const enableBiometric = useCallback(async (): Promise<boolean> => {
+  const enableBiometric = useCallback(async (): Promise<ArrayBuffer | null> => {
     if (!user?.uid || !user?.email) {
       throw new Error("User must be authenticated to enable biometric");
     }
@@ -168,13 +169,18 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const success = await registerBiometric(user.uid, user.email);
-      if (success) {
+      const entropy = await registerBiometric(user.uid, user.email);
+      if (entropy) {
         // Reload all credentials (including the newly added one)
         const credentialIds = await loadBiometricCredentials(user.uid);
         setBiometricCredentialIds(credentialIds);
+        
+        // If we got entropy but it's empty, we need to authenticate once to get it
+        if (entropy.byteLength === 0) {
+          return await authenticateWithBiometric(credentialIds);
+        }
       }
-      return success;
+      return entropy;
     } catch (error) {
       console.error("Error enabling biometric:", error);
       throw error;
@@ -197,22 +203,25 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
   }, [user?.uid]);
 
   // Unlock using biometric (works with any registered device)
-  const unlockWithBiometric = useCallback(async (): Promise<boolean> => {
-    if (biometricCredentialIds.length === 0) {
+  const unlockWithBiometric = useCallback(async (): Promise<string | boolean> => {
+    if (biometricCredentialIds.length === 0 || !user?.uid) {
       return false;
     }
 
     try {
-      const success = await authenticateWithBiometric(biometricCredentialIds);
-      if (success) {
+      const entropy = await authenticateWithBiometric(biometricCredentialIds);
+      if (entropy) {
         setIsLocked(false);
+        // Load master key from secure IndexedDB using PRF entropy
+        const masterKey = await loadMasterKeyLocally(user.uid, entropy);
+        return masterKey || true;
       }
-      return success;
+      return false;
     } catch (error) {
       console.error("Error unlocking with biometric:", error);
       return false;
     }
-  }, [biometricCredentialIds]);
+  }, [biometricCredentialIds, user?.uid]);
 
   // Clear lock state when user logs out
   useEffect(() => {

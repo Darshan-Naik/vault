@@ -1,19 +1,26 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Lock, Eye, EyeOff, AlertTriangle, Shield } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertTriangle, Shield, Fingerprint, Scan } from "lucide-react";
+import { getBiometricName } from "@vault/shared";
 
 type Props = {
   onUnlock: (password: string) => Promise<boolean>;
   onForgotPassword: () => void;
+  isBiometricEnabled: boolean;
+  onBiometricUnlock: () => Promise<boolean>;
 };
 
-function PasswordUnlock({ onUnlock, onForgotPassword }: Props) {
+function PasswordUnlock({ onUnlock, onForgotPassword, isBiometricEnabled, onBiometricUnlock }: Props) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [shake, setShake] = useState(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+
+  const biometricName = getBiometricName();
+  const isFaceId = biometricName === "Face ID";
 
   const handleUnlock = async () => {
     setError("");
@@ -32,6 +39,21 @@ function PasswordUnlock({ onUnlock, onForgotPassword }: Props) {
       setError(err instanceof Error ? err.message : "Failed to unlock vault");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleBiometricUnlock = async () => {
+    setIsBiometricLoading(true);
+    setError("");
+    try {
+      const success = await onBiometricUnlock();
+      if (!success) {
+        setError(`${biometricName} authentication failed.`);
+      }
+    } catch (err) {
+      setError(`${biometricName} authentication failed.`);
+    } finally {
+      setIsBiometricLoading(false);
     }
   };
 
@@ -109,7 +131,7 @@ function PasswordUnlock({ onUnlock, onForgotPassword }: Props) {
             {/* Submit button */}
             <Button
               onClick={handleUnlock}
-              disabled={isLoading || !password}
+              disabled={isLoading || !password || isBiometricLoading}
               className="w-full h-9 sm:h-10 text-sm"
             >
               {isLoading ? (
@@ -121,6 +143,36 @@ function PasswordUnlock({ onUnlock, onForgotPassword }: Props) {
                 "Unlock"
               )}
             </Button>
+
+            {/* Biometric unlock option */}
+            {isBiometricEnabled && (
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex items-center gap-3 w-full">
+                  <div className="h-px flex-1 bg-border" />
+                  <span className="text-xs text-muted-foreground">or</span>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleBiometricUnlock}
+                  disabled={isBiometricLoading || isLoading}
+                  className="group flex flex-col items-center gap-2 p-3 rounded-lg bg-card border border-border hover:bg-card/80 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                >
+                  <div className="relative">
+                    {isBiometricLoading ? (
+                      <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    ) : isFaceId ? (
+                      <Scan className="w-8 h-8 text-foreground" />
+                    ) : (
+                      <Fingerprint className="w-8 h-8 text-foreground" />
+                    )}
+                  </div>
+                  <span className="text-sm font-medium text-foreground">
+                    {isBiometricLoading ? "Verifying..." : `Use ${biometricName}`}
+                  </span>
+                </button>
+              </div>
+            )}
 
             {/* Forgot password link */}
             <div className="text-center pt-1 sm:pt-2">

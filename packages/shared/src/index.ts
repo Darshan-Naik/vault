@@ -1,5 +1,6 @@
 export * from './lib/actions';
 export * from './lib/async-utils';
+export * from './lib/biometric-storage';
 export * from './lib/biometric-utils';
 export * from './lib/configs';
 export * from './lib/crypto';
