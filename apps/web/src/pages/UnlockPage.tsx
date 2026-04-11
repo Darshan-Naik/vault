@@ -24,14 +24,26 @@ export default function UnlockPage() {
     };
 
     const handleBiometricUnlock = async (): Promise<boolean> => {
-        const result = await unlockWithBiometric();
-        if (result) {
-            if (typeof result === "string") {
-                unlockWithMasterKey(result);
+        if (!isBiometricEnabled) return false;
+        
+        try {
+            const result = await unlockWithBiometric();
+            if (result) {
+                if (typeof result === "string") {
+                    // Success: we got the master key
+                    unlockWithMasterKey(result);
+                    bypassLock();
+                    navigate(returnTo, { replace: true });
+                    return true;
+                } else {
+                    // Biometric succeeded but master key is not available locally
+                    // We stay on the page so the user can enter their password
+                    console.warn("Biometric success but no master key found locally");
+                    return false;
+                }
             }
-            bypassLock();
-            navigate(returnTo, { replace: true });
-            return true;
+        } catch (err) {
+            console.error("Biometric unlock error:", err);
         }
         return false;
     };

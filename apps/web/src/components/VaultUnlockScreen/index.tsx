@@ -42,9 +42,12 @@ function VaultUnlockScreen() {
     if (result) {
       if (typeof result === "string") {
         unlockWithMasterKey(result);
+        bypassLock();
+        return true;
       }
+      // If result is just true, biometric authenticated but master key is missing locally
+      // We still bypass PIN lock, but return false to indicate full vault unlock failed
       bypassLock();
-      return true;
     }
     return false;
   };
