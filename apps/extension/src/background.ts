@@ -1,7 +1,7 @@
 import { ExtensionAction } from './types/actions';
 import { getAuthUser, syncUserAuth, syncUserLogout } from './background/auth';
 import { state, clearCache } from './background/state';
-import { handleGetCredentials, handleUnlockAndGetCredential, handleSaveCredential } from './background/vault';
+import { handleGetCredentials, handleUnlockAndGetCredential, handleSaveCredential, checkCredentialExists } from './background/vault';
 import { openAutoPopup, closePromptInTab } from './background/windows';
 
 console.log("Vault Background script initialized");
@@ -67,10 +67,32 @@ const Handlers: Record<string, (request: any, sender: chrome.runtime.MessageSend
     },
 
     [ExtensionAction.OPEN_SAVE_POPUP]: async (req, sender) => {
-        await state.setPendingSave(req.payload);
-        if (sender.tab?.id) {
-            openAutoPopup(sender.tab.id, req.hostname, "save-prompt");
+        const { hostname, payload } = req;
+        const dismissed = await state.dismissedHostnames;
+
+        if (dismissed.includes(hostname)) {
+            console.log(`Vault: Skipping save prompt for dismissed host ${hostname}`);
+            return { success: false, reason: "dismissed" };
         }
+
+        const exists = await checkCredentialExists(hostname, payload.uid);
+        if (exists) {
+            console.log(`Vault: Skipping save prompt as credential already exists for ${hostname}`);
+            return { success: false, reason: "exists" };
+        }
+
+        await state.setPendingSave(payload);
+        if (sender.tab?.id) {
+            openAutoPopup(sender.tab.id, hostname, "save-prompt");
+        }
+        return { success: true };
+    },
+
+    [ExtensionAction.DISMISS_SAVE_FOR_HOST]: async (req) => {
+        if (req.payload?.hostname) {
+            await state.addDismissedHostname(req.payload.hostname);
+        }
+        await state.setPendingSave(null);
         return { success: true };
     },
 

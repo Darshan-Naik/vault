@@ -128,3 +128,15 @@ export const handleSaveCredential = async (authUser: any, payload: any) => {
         console.error("Failed to auto-save credential", e);
     }
 };
+
+export const checkCredentialExists = async (hostname: string, username: string) => {
+    const cachedVaults = await state.cachedVaults;
+    if (!cachedVaults) return false;
+
+    return cachedVaults.some((v: any) =>
+        v.type === "CREDENTIAL" &&
+        v.url &&
+        matchHostname(v.url, hostname) &&
+        String(v.uid).trim() === String(username).trim()
+    );
+};

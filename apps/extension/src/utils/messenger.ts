@@ -31,5 +31,6 @@ export const messenger = {
     clearPendingSave: () => sendMessage(ExtensionAction.CLEAR_PENDING_SAVE),
     syncUserAuth: (payload: { userJson: any, apiKey: string }) =>
         sendMessage(ExtensionAction.SYNC_USER_AUTH, payload),
-    syncUserLogout: () => sendMessage(ExtensionAction.SYNC_USER_LOGOUT)
+    syncUserLogout: () => sendMessage(ExtensionAction.SYNC_USER_LOGOUT),
+    dismissSaveForHost: (hostname: string) => sendMessage(ExtensionAction.DISMISS_SAVE_FOR_HOST, { hostname })
 };

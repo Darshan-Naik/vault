@@ -41,6 +41,15 @@ export const state = {
         } else {
             await storage.remove(STORAGE_KEYS.PENDING_SAVE, 'session');
         }
+    },
+    get dismissedHostnames(): Promise<string[]> {
+        return storage.get<string[]>(STORAGE_KEYS.DISMISSED_HOSTNAMES, 'local').then(val => val || []);
+    },
+    async addDismissedHostname(hostname: string) {
+        const current = await this.dismissedHostnames;
+        if (!current.includes(hostname)) {
+            await storage.set(STORAGE_KEYS.DISMISSED_HOSTNAMES, [...current, hostname], 'local');
+        }
     }
 };
 

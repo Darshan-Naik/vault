@@ -220,7 +220,7 @@ const App: React.FC = () => {
           pendingSave={pendingSave}
           onSave={handleSave}
           onDismiss={() => {
-            messenger.clearPendingSave().then(() => window.close());
+            messenger.dismissSaveForHost(currentHostname).then(() => window.close());
           }}
         />
       ) : (
