@@ -202,9 +202,8 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
         const credentialIds = await loadBiometricCredentials(user.uid);
         setBiometricCredentialIds(credentialIds);
         
-        // If we got entropy but it's empty, we need to authenticate once to get it
         if (entropy.byteLength === 0) {
-          return await authenticateWithBiometric(credentialIds);
+          return await authenticateWithBiometric(user.uid);
         }
       }
       return entropy;
@@ -214,7 +213,7 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user?.uid, user?.email, biometricAvailable]);
 
-  // Disable biometric authentication (removes all devices)
+  // Disable biometric on this device only
   const disableBiometric = useCallback(async (): Promise<void> => {
     if (!user?.uid) {
       throw new Error("User must be authenticated to disable biometric");
@@ -229,14 +228,14 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user?.uid]);
 
-  // Unlock using biometric (works with any registered device)
+  // Unlock using this device's passkey
   const unlockWithBiometric = useCallback(async (): Promise<string | boolean> => {
     if (biometricCredentialIds.length === 0 || !user?.uid) {
       return false;
     }
 
     try {
-      const entropy = await authenticateWithBiometric(biometricCredentialIds);
+      const entropy = await authenticateWithBiometric(user.uid);
       if (entropy) {
         setIsLocked(false);
         // Load master key from secure IndexedDB using PRF entropy

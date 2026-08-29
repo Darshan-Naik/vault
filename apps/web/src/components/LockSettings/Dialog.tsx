@@ -215,8 +215,8 @@ export default function LockSettingsContent() {
                       {!isBiometricAvailable 
                         ? "Not available on this device"
                         : isBiometricEnabled
-                        ? "Enabled"
-                        : "Quick unlock with biometrics"}
+                        ? "Enabled on this device"
+                        : "Enable on this device"}
                     </div>
                   </div>
                 </div>

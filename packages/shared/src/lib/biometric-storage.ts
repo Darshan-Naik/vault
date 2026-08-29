@@ -152,3 +152,23 @@ export const hasBiometricSecret = async (userId: string): Promise<boolean> => {
   const data = await idbGet(`mk:${userId}`);
   return !!data;
 };
+
+const credentialIdKey = (userId: string) => `cred:${userId}`;
+
+export const saveLocalCredentialId = async (
+  userId: string,
+  credentialId: string
+): Promise<void> => {
+  await idbSet(credentialIdKey(userId), credentialId);
+};
+
+export const loadLocalCredentialId = async (
+  userId: string
+): Promise<string | null> => {
+  const value = await idbGet(credentialIdKey(userId));
+  return typeof value === "string" && value.length > 0 ? value : null;
+};
+
+export const clearLocalCredentialId = async (userId: string): Promise<void> => {
+  await idbDelete(credentialIdKey(userId));
+};

@@ -1,9 +1,17 @@
 /**
  * Biometric authentication utilities using WebAuthn API
- * Supports Face ID, Touch ID, Windows Hello, and Android fingerprint
+ * Platform authenticators (Face ID, Touch ID, Windows Hello) are per-device.
+ * Each device registers its own passkey and stores PRF-wrapped keys locally.
  */
 
 import { getSettingsLocalFirst, saveSettingsLocalFirst } from "./local-sync";
+import {
+  clearLocalCredentialId,
+  clearMasterKeyLocally,
+  hasBiometricSecret,
+  loadLocalCredentialId,
+  saveLocalCredentialId,
+} from "./biometric-storage";
 
 // Check if WebAuthn is available
 export const isBiometricAvailable = async (): Promise<boolean> => {
@@ -61,24 +69,46 @@ export const saveBiometricCredential = async (
   await saveSettingsLocalFirst(userId, { biometricCredentialIds: credentialIds });
 };
 
-// Load all credential IDs (supports multiple devices)
+// Load credential IDs that can be used on THIS device only.
 export const loadBiometricCredentials = async (
   userId: string
 ): Promise<string[]> => {
   try {
-    const settings = await getSettingsLocalFirst(userId);
-    return settings?.biometricCredentialIds ?? [];
+    const localId = await loadLocalCredentialId(userId);
+    if (localId) {
+      return [localId];
+    }
+
+    // Migration: this device enrolled before local credential IDs were stored.
+    if (await hasBiometricSecret(userId)) {
+      const settings = await getSettingsLocalFirst(userId);
+      return settings?.biometricCredentialIds ?? [];
+    }
+
+    return [];
   } catch (error) {
     console.error("Error loading biometric credentials:", error);
     return [];
   }
 };
 
-// Delete all biometric credentials
+// Disable biometric on this device only; leave other devices enrolled.
 export const deleteBiometricCredential = async (
   userId: string
 ): Promise<void> => {
-  await saveSettingsLocalFirst(userId, { biometricCredentialIds: [] });
+  const localId = await loadLocalCredentialId(userId);
+  await clearLocalCredentialId(userId);
+  await clearMasterKeyLocally(userId);
+
+  if (!localId) {
+    return;
+  }
+
+  const settings = await getSettingsLocalFirst(userId);
+  const credentialIds = (settings?.biometricCredentialIds ?? []).filter(
+    (id) => id !== localId
+  );
+  await saveSettingsLocalFirst(userId, { biometricCredentialIds: credentialIds });
 };
 
 // Register biometric credential (Face ID/fingerprint enrollment) with PRF support
@@ -107,9 +137,9 @@ export const registerBiometric = async (
           { alg: -257, type: "public-key" }, // RS256
         ],
         authenticatorSelection: {
-          authenticatorAttachment: "platform", // Use platform authenticator (Face ID, Touch ID, etc.)
+          authenticatorAttachment: "platform",
           userVerification: "required",
-          residentKey: "preferred",
+          residentKey: "required",
         },
         extensions: {
           prf: {}, // Request PRF (Pseudo-Random Function) support
@@ -140,8 +170,9 @@ export const registerBiometric = async (
       }
     }
 
-    // Store credential ID
+    // Store credential ID on this device and in the account registry
     const credentialId = arrayBufferToBase64(credential.rawId);
+    await saveLocalCredentialId(userId, credentialId);
     await saveBiometricCredential(userId, credentialId);
 
     return entropy || new ArrayBuffer(0); // Return empty buffer if PRF enabled but no immediate result
@@ -164,11 +195,11 @@ export const registerBiometric = async (
 // Fixed salt for PRF key derivation
 const PRF_SALT = new TextEncoder().encode("vault-app-biometric-salt-v1");
 
-// Authenticate using biometric and derive PRF entropy
-// Returns entropy (ArrayBuffer) on success, or null on failure
+// Authenticate using this device's passkey and derive PRF entropy
 export const authenticateWithBiometric = async (
-  credentialIds: string[]
+  userId: string
 ): Promise<ArrayBuffer | null> => {
+  const credentialIds = await loadBiometricCredentials(userId);
   if (credentialIds.length === 0) {
     return null;
   }
@@ -176,14 +207,14 @@ export const authenticateWithBiometric = async (
   try {
     const challenge = generateChallenge();
 
-    // Create authentication options with all registered credentials and PRF evaluation
     const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions =
       {
         challenge,
+        rpId: window.location.hostname,
         allowCredentials: credentialIds.map((credentialId) => ({
           id: base64ToArrayBuffer(credentialId),
           type: "public-key" as const,
-          transports: ["internal" as const],
+          transports: ["internal"],
         })),
         userVerification: "required",
         extensions: {
@@ -196,7 +227,6 @@ export const authenticateWithBiometric = async (
         timeout: 60000,
       };
 
-    // Get assertion
     const assertion = (await navigator.credentials.get({
       publicKey: publicKeyCredentialRequestOptions,
     })) as PublicKeyCredential | null;
@@ -205,21 +235,18 @@ export const authenticateWithBiometric = async (
       return null;
     }
 
-    // Get PRF extension results
+    await saveLocalCredentialId(userId, arrayBufferToBase64(assertion.rawId));
+
     const extensionResults = assertion.getClientExtensionResults() as any;
     if (extensionResults.prf && extensionResults.prf.results) {
-      // Return the derived entropy (first.results)
       return extensionResults.prf.results.first;
     }
 
-    // Fallback: If PRF is not supported but biometric auth succeeded, 
-    // we return a special symbol or just null if the user wants hard-lock only
     console.warn("Biometric auth succeeded but PRF results are missing");
     return null;
   } catch (error) {
     console.error("Error authenticating with biometric:", error);
     if (error instanceof Error && error.name === "NotAllowedError") {
-      // User cancelled or verification failed
       return null;
     }
     throw error;
