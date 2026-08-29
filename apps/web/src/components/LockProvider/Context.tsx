@@ -1,4 +1,5 @@
 import { createContext } from "react";
+import { DEFAULT_AUTO_LOCK_TIMEOUT_MS } from "@vault/shared";
 
 export const LockContext = createContext<{
   isLocked: boolean;
@@ -9,6 +10,8 @@ export const LockContext = createContext<{
   setLockKey: (key: string) => Promise<void>;
   updateLockKey: (oldKey: string, newKey: string) => Promise<boolean>;
   resetLockKey: () => Promise<void>;
+  autoLockTimeoutMs: number;
+  setAutoLockTimeout: (timeoutMs: number) => Promise<void>;
   // Biometric authentication
   isBiometricAvailable: boolean;
   isBiometricEnabled: boolean;
@@ -24,6 +27,8 @@ export const LockContext = createContext<{
   setLockKey: async () => {},
   updateLockKey: async () => false,
   resetLockKey: async () => {},
+  autoLockTimeoutMs: DEFAULT_AUTO_LOCK_TIMEOUT_MS,
+  setAutoLockTimeout: async () => {},
   // Biometric authentication defaults
   isBiometricAvailable: false,
   isBiometricEnabled: false,

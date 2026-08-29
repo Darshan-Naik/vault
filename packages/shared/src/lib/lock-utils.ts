@@ -2,6 +2,29 @@ import { db } from "../firebase";
 import { doc, getDoc, setDoc, updateDoc, deleteField } from "firebase/firestore";
 import CryptoJS from "crypto-js";
 
+/** 0 = lock as soon as the app is hidden (tab switch / app switch). */
+export const AUTO_LOCK_TIMEOUT_OPTIONS = [
+  { value: 0, label: "Immediately" },
+  { value: 60_000, label: "1 minute" },
+  { value: 5 * 60_000, label: "5 minutes" },
+  { value: 15 * 60_000, label: "15 minutes" },
+  { value: 30 * 60_000, label: "30 minutes" },
+  { value: 60 * 60_000, label: "1 hour" },
+] as const;
+
+export const DEFAULT_AUTO_LOCK_TIMEOUT_MS = 5 * 60_000;
+
+export type LockSettings = {
+  pinHash: string | null;
+  autoLockTimeoutMs: number;
+};
+
+const isValidAutoLockTimeout = (value: unknown): value is number =>
+  typeof value === "number" &&
+  Number.isFinite(value) &&
+  value >= 0 &&
+  AUTO_LOCK_TIMEOUT_OPTIONS.some((option) => option.value === value);
+
 /**
  * Hash a PIN using SHA256
  */
@@ -27,19 +50,52 @@ const getUserSettingsRef = (userId: string) => {
  * Load PIN hash from Firestore for a user
  */
 export const loadPinHash = async (userId: string): Promise<string | null> => {
+  const settings = await loadLockSettings(userId);
+  return settings.pinHash;
+};
+
+/**
+ * Load lock PIN and auto-lock timeout from Firestore
+ */
+export const loadLockSettings = async (userId: string): Promise<LockSettings> => {
   try {
     const userSettingsRef = getUserSettingsRef(userId);
     const userSettingsSnap = await getDoc(userSettingsRef);
-    
+
     if (userSettingsSnap.exists()) {
       const data = userSettingsSnap.data();
-      return data.lockPinHash || null;
+      return {
+        pinHash: data.lockPinHash || null,
+        autoLockTimeoutMs: isValidAutoLockTimeout(data.autoLockTimeoutMs)
+          ? data.autoLockTimeoutMs
+          : DEFAULT_AUTO_LOCK_TIMEOUT_MS,
+      };
     }
-    
-    return null;
+
+    return { pinHash: null, autoLockTimeoutMs: DEFAULT_AUTO_LOCK_TIMEOUT_MS };
   } catch (error) {
-    console.error("Error loading PIN hash:", error);
-    throw new Error("Failed to load PIN");
+    console.error("Error loading lock settings:", error);
+    throw new Error("Failed to load lock settings");
+  }
+};
+
+/**
+ * Persist auto-lock inactivity timeout
+ */
+export const saveAutoLockTimeout = async (
+  userId: string,
+  timeoutMs: number
+): Promise<void> => {
+  if (!isValidAutoLockTimeout(timeoutMs)) {
+    throw new Error("Invalid auto-lock timeout");
+  }
+
+  try {
+    const userSettingsRef = getUserSettingsRef(userId);
+    await setDoc(userSettingsRef, { autoLockTimeoutMs: timeoutMs }, { merge: true });
+  } catch (error) {
+    console.error("Error saving auto-lock timeout:", error);
+    throw new Error("Failed to save auto-lock timeout");
   }
 };
 

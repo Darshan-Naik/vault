@@ -1,14 +1,16 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { LockContext } from "./Context";
 import { auth } from "@vault/shared";
 import { onAuthStateChanged } from "firebase/auth";
 import { useAuth } from "../AuthProvider";
 import {
-  loadPinHash,
+  loadLockSettings,
   savePinHash,
   updatePinHash,
   verifyPin,
   deletePinHash,
+  saveAutoLockTimeout,
+  DEFAULT_AUTO_LOCK_TIMEOUT_MS,
 } from "@vault/shared";
 import {
   isBiometricAvailable as checkBiometricAvailable,
@@ -25,6 +27,10 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
   // Start locked by default to prevent flash of unlocked content while PIN hash loads
   const [isLocked, setIsLocked] = useState(true);
   const [pinHash, setPinHash] = useState<string | null>(null);
+  const [autoLockTimeoutMs, setAutoLockTimeoutMs] = useState(
+    DEFAULT_AUTO_LOCK_TIMEOUT_MS
+  );
+  const lastActivityRef = useRef(Date.now());
 
   // Biometric state (supports multiple devices)
   const [biometricAvailable, setBiometricAvailable] = useState(false);
@@ -47,23 +53,26 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
       if (!user?.uid) {
         setPinHash(null);
         setBiometricCredentialIds([]);
+        setAutoLockTimeoutMs(DEFAULT_AUTO_LOCK_TIMEOUT_MS);
         setIsLocked(false);
         return;
       }
 
       try {
-        const [hash, credentialIds] = await Promise.all([
-          loadPinHash(user.uid),
+        const [lockSettings, credentialIds] = await Promise.all([
+          loadLockSettings(user.uid),
           loadBiometricCredentials(user.uid),
         ]);
-        setPinHash(hash);
+        setPinHash(lockSettings.pinHash);
+        setAutoLockTimeoutMs(lockSettings.autoLockTimeoutMs);
         setBiometricCredentialIds(credentialIds);
         // If PIN hash exists, start locked; otherwise start unlocked
-        setIsLocked(!!hash);
+        setIsLocked(!!lockSettings.pinHash);
       } catch (error) {
         console.error("Error loading user settings:", error);
         setPinHash(null);
         setBiometricCredentialIds([]);
+        setAutoLockTimeoutMs(DEFAULT_AUTO_LOCK_TIMEOUT_MS);
         setIsLocked(false);
       }
     };
@@ -132,6 +141,18 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
       return false;
     },
     [pinHash]
+  );
+
+  const setAutoLockTimeout = useCallback(
+    async (timeoutMs: number) => {
+      if (!user?.uid) {
+        throw new Error("User must be authenticated to update auto-lock");
+      }
+
+      await saveAutoLockTimeout(user.uid, timeoutMs);
+      setAutoLockTimeoutMs(timeoutMs);
+    },
+    [user?.uid]
   );
 
   const resetLockKey = useCallback(async () => {
@@ -231,27 +252,96 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
         setIsLocked(false);
         setPinHash(null);
         setBiometricCredentialIds([]);
+        setAutoLockTimeoutMs(DEFAULT_AUTO_LOCK_TIMEOUT_MS);
       }
     });
 
     return unsubscribe;
   }, []);
 
-  // Detect visibility changes (when app goes to background/foreground)
+  // Lock after inactivity — not immediately on tab/app switch, so copying
+  // a field into another tab does not lock the vault mid-workflow.
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && hasLockKey()) {
-        // App went to background, lock it
-        lock();
+    if (!hasLockKey() || isLocked) return;
+
+    lastActivityRef.current = Date.now();
+    let idleTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const clearIdleTimer = () => {
+      if (idleTimer) {
+        clearTimeout(idleTimer);
+        idleTimer = null;
       }
     };
 
+    const isIdleExpired = () =>
+      autoLockTimeoutMs > 0 &&
+      Date.now() - lastActivityRef.current >= autoLockTimeoutMs;
+
+    const scheduleIdleLock = () => {
+      clearIdleTimer();
+      if (autoLockTimeoutMs <= 0) return;
+
+      const remaining = Math.max(
+        autoLockTimeoutMs - (Date.now() - lastActivityRef.current),
+        0
+      );
+      idleTimer = setTimeout(() => {
+        if (isIdleExpired()) {
+          lock();
+        } else {
+          scheduleIdleLock();
+        }
+      }, remaining);
+    };
+
+    const onActivity = () => {
+      if (document.hidden) return;
+      lastActivityRef.current = Date.now();
+      scheduleIdleLock();
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        if (autoLockTimeoutMs === 0) {
+          lock();
+          return;
+        }
+        scheduleIdleLock();
+        return;
+      }
+
+      if (isIdleExpired()) {
+        lock();
+        return;
+      }
+
+      lastActivityRef.current = Date.now();
+      scheduleIdleLock();
+    };
+
+    const activityEvents = [
+      "mousedown",
+      "keydown",
+      "touchstart",
+      "scroll",
+      "pointerdown",
+    ] as const;
+
+    activityEvents.forEach((event) =>
+      window.addEventListener(event, onActivity, { passive: true })
+    );
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    scheduleIdleLock();
 
     return () => {
+      clearIdleTimer();
+      activityEvents.forEach((event) =>
+        window.removeEventListener(event, onActivity)
+      );
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [hasLockKey, lock]);
+  }, [hasLockKey, lock, isLocked, autoLockTimeoutMs]);
 
   const value = {
     isLocked,
@@ -262,6 +352,8 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     setLockKey,
     updateLockKey,
     resetLockKey,
+    autoLockTimeoutMs,
+    setAutoLockTimeout,
     // Biometric (supports multiple devices)
     isBiometricAvailable: biometricAvailable,
     isBiometricEnabled: biometricCredentialIds.length > 0,

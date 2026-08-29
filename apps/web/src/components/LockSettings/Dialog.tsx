@@ -6,6 +6,13 @@ import { useAuth } from "../AuthProvider";
 import { Button } from "@/components/ui/button";
 import { PinInput } from "@/components/ui/pin-input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Lock,
   Shield,
   AlertTriangle,
@@ -14,9 +21,15 @@ import {
   Check,
   X,
   ChevronLeft,
+  Timer,
 } from "lucide-react";
 import { toast } from "sonner";
-import { getBiometricName, saveMasterKeyLocally, clearMasterKeyLocally } from "@vault/shared";
+import {
+  getBiometricName,
+  saveMasterKeyLocally,
+  clearMasterKeyLocally,
+  AUTO_LOCK_TIMEOUT_OPTIONS,
+} from "@vault/shared";
 
 export function ButtonLabel() {
   const { hasLockKey } = useLock();
@@ -34,6 +47,8 @@ export default function LockSettingsContent() {
     isBiometricEnabled,
     enableBiometric,
     disableBiometric,
+    autoLockTimeoutMs,
+    setAutoLockTimeout,
   } = useLock();
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
@@ -111,15 +126,30 @@ export default function LockSettingsContent() {
         }
       }
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : `Failed to ${isBiometricEnabled ? "disable" : "enable"
-          } ${biometricName}`;
+      let message = `Failed to ${isBiometricEnabled ? "disable" : "enable"} ${biometricName}`;
+      
+      if (err instanceof Error) {
+        message = err.message;
+      } else if (typeof err === "string") {
+        message = err;
+      }
+      
       setError(message);
       toast.error(message);
     } finally {
       setIsBiometricLoading(false);
+    }
+  };
+
+  const handleAutoLockChange = async (value: string) => {
+    try {
+      await setAutoLockTimeout(Number(value));
+      toast.success("Auto-lock updated");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update auto-lock";
+      setError(message);
+      toast.error(message);
     }
   };
 
@@ -142,7 +172,7 @@ export default function LockSettingsContent() {
               {hasLockKey ? "Update PIN" : "Set Lock PIN"}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Quick unlock when returning to the app
+              Quick unlock after inactivity
             </p>
           </div>
         </div>
@@ -183,13 +213,42 @@ export default function LockSettingsContent() {
             </div>
           )}
 
-          {/* Biometric toggle - only show when PIN is already set */}
-          {hasLockKey && isBiometricAvailable && (
-            <div className="pt-4 border-t border-border">
+          {/* Auto-lock + biometric — only when PIN is already set */}
+          {hasLockKey && (
+            <div className="space-y-3 pt-4 border-t border-border">
+              <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-card border border-border">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center shrink-0">
+                    <Timer className="w-4 h-4 text-foreground" />
+                  </div>
+                  <div className="text-left min-w-0">
+                    <div className="font-medium text-foreground">Auto-lock</div>
+                    <div className="text-xs text-muted-foreground">
+                      Lock after inactivity, not tab switches
+                    </div>
+                  </div>
+                </div>
+                <Select
+                  value={String(autoLockTimeoutMs)}
+                  onValueChange={handleAutoLockChange}
+                >
+                  <SelectTrigger className="w-[140px] shrink-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {AUTO_LOCK_TIMEOUT_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={String(option.value)}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <button
                 type="button"
                 onClick={handleToggleBiometric}
-                disabled={isBiometricLoading}
+                disabled={isBiometricLoading || !isBiometricAvailable}
                 className="w-full flex items-center justify-between p-3 rounded-lg bg-card border border-border hover:bg-card/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex items-center gap-3">
@@ -205,7 +264,9 @@ export default function LockSettingsContent() {
                       {biometricName}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {isBiometricEnabled
+                      {!isBiometricAvailable 
+                        ? "Not available on this device"
+                        : isBiometricEnabled
                         ? "Enabled"
                         : "Quick unlock with biometrics"}
                     </div>
@@ -214,7 +275,7 @@ export default function LockSettingsContent() {
                 <div className="flex items-center gap-2">
                   {isBiometricLoading ? (
                     <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                  ) : isBiometricEnabled ? (
+                  ) : isBiometricEnabled && isBiometricAvailable ? (
                     <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center">
                       <Check className="w-4 h-4 text-green-500" />
                     </div>
@@ -231,9 +292,9 @@ export default function LockSettingsContent() {
           {/* Info box */}
           <div className="p-3 rounded-lg bg-muted/50 border border-border">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Your vault automatically locks when you leave the app. Use this
-              PIN for quick unlock instead of entering your full password each
-              time.
+              Your vault locks after a period of inactivity so you can copy
+              fields into other tabs without being locked out. Use this PIN for
+              quick unlock instead of entering your full password each time.
             </p>
           </div>
 
