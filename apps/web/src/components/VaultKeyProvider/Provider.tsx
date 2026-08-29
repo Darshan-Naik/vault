@@ -13,13 +13,21 @@ import {
   ensureUserSync,
   stopUserSync,
 } from "@vault/shared";
+import {
+  clearSessionMasterKey,
+  clearUnlockSession,
+  loadSessionMasterKey,
+  saveSessionMasterKey,
+} from "@/lib/unlock-session";
 
 export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
 
   const [isLoading, setIsLoading] = useState(true);
   const [userMeta, setUserMeta] = useState<TUserMeta | null>(null);
-  const [masterKey, setMasterKey] = useState<string | null>(null);
+  const [masterKey, setMasterKey] = useState<string | null>(() =>
+    user?.uid ? loadSessionMasterKey(user.uid) : null
+  );
   const [isMetaUnavailable, setIsMetaUnavailable] = useState(false);
 
   // Load user metadata when user is available
@@ -83,8 +91,19 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
     if (!user) {
       setUserMeta(null);
       setMasterKey(null);
+      clearUnlockSession();
     }
   }, [user]);
+
+  // Keep unlock across refresh; sessionStorage is cleared when the tab closes
+  useEffect(() => {
+    if (!user?.uid) return;
+    if (masterKey) {
+      saveSessionMasterKey(user.uid, masterKey);
+    } else {
+      clearSessionMasterKey();
+    }
+  }, [user?.uid, masterKey]);
 
   // Setup - create new user vault with password
   // Returns recovery key and master key, but doesn't set state yet
@@ -138,9 +157,10 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
     [userMeta]
   );
 
-  // Lock - clear master key from memory
+  // Lock - clear master key from memory and this tab's session
   const lock = useCallback(() => {
     setMasterKey(null);
+    clearSessionMasterKey();
   }, []);
 
   // Change password (requires old password)

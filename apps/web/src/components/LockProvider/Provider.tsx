@@ -20,11 +20,18 @@ import {
   loadMasterKeyLocally,
 } from "@vault/shared";
 import { signOut } from "firebase/auth";
+import {
+  isSessionPinUnlocked,
+  saveSessionPinUnlocked,
+  clearUnlockSession,
+} from "@/lib/unlock-session";
 
 export function LockProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   // Start locked by default to prevent flash of unlocked content while PIN hash loads
-  const [isLocked, setIsLocked] = useState(true);
+  const [isLocked, setIsLocked] = useState(() =>
+    user?.uid ? !isSessionPinUnlocked(user.uid) : true
+  );
   const [isSettingsLoading, setIsSettingsLoading] = useState(true);
   const [isSettingsUnavailable, setIsSettingsUnavailable] = useState(false);
   const [pinHash, setPinHash] = useState<string | null>(null);
@@ -56,6 +63,7 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
         setIsLocked(false);
         setIsSettingsUnavailable(false);
         setIsSettingsLoading(false);
+        clearUnlockSession();
         return;
       }
 
@@ -68,13 +76,22 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
         if (cancelled) return;
         setPinHash(lockSettings.pinHash);
         setBiometricCredentialIds(credentialIds);
-        // If PIN hash exists, start locked; otherwise start unlocked
-        setIsLocked(!!lockSettings.pinHash);
+        // Keep this tab's unlock across refresh; only lock if PIN exists
+        // and this tab has not already unlocked.
+        setIsLocked(
+          isSessionPinUnlocked(user.uid) ? false : !!lockSettings.pinHash
+        );
         setIsSettingsUnavailable(false);
         setIsSettingsLoading(false);
       } catch (error) {
         console.error("Error loading user settings:", error);
         if (cancelled) return;
+        if (isSessionPinUnlocked(user.uid)) {
+          setIsLocked(false);
+          setIsSettingsUnavailable(true);
+          setIsSettingsLoading(false);
+          return;
+        }
         // Stay locked so PIN protection cannot be skipped when offline.
         setIsLocked(true);
         setIsSettingsUnavailable(true);
@@ -98,18 +115,29 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     };
   }, [user?.uid]);
 
+  useEffect(() => {
+    if (!user?.uid || isSettingsLoading) return;
+    saveSessionPinUnlocked(user.uid, !isLocked);
+  }, [user?.uid, isLocked, isSettingsLoading]);
+
   const hasLockKey = useCallback(() => {
     return !!pinHash;
   }, [pinHash]);
 
   const lock = useCallback(() => {
     setIsLocked(true);
-  }, []);
+    if (user?.uid) {
+      saveSessionPinUnlocked(user.uid, false);
+    }
+  }, [user?.uid]);
 
   // Bypass lock - used after password unlock to skip PIN for this session
   const bypassLock = useCallback(() => {
     setIsLocked(false);
-  }, []);
+    if (user?.uid) {
+      saveSessionPinUnlocked(user.uid, true);
+    }
+  }, [user?.uid]);
 
   const setLockKey = useCallback(
     async (key: string) => {
@@ -154,11 +182,14 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
       const isValid = verifyPin(key, pinHash);
       if (isValid) {
         setIsLocked(false);
+        if (user?.uid) {
+          saveSessionPinUnlocked(user.uid, true);
+        }
         return true;
       }
       return false;
     },
-    [pinHash]
+    [pinHash, user?.uid]
   );
 
   const resetLockKey = useCallback(async () => {
@@ -238,6 +269,9 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
       const entropy = await authenticateWithBiometric(user.uid);
       if (entropy) {
         setIsLocked(false);
+        if (user?.uid) {
+          saveSessionPinUnlocked(user.uid, true);
+        }
         // Load master key from secure IndexedDB using PRF entropy
         const masterKey = await loadMasterKeyLocally(user.uid, entropy);
         return masterKey || true;
@@ -257,6 +291,7 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
         setIsLocked(false);
         setPinHash(null);
         setBiometricCredentialIds([]);
+        clearUnlockSession();
       }
     });
 
