@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
 import { useVaultKey } from "./VaultKeyProvider";
 import { useLock } from "./LockProvider";
+import { VaultUnavailableScreen } from "./VaultUnavailableScreen";
 
 function LoadingScreen() {
     return (
@@ -15,18 +16,22 @@ function LoadingScreen() {
 
 export default function ProtectedRoute() {
     const { user, loading: authLoading } = useAuth();
-    const { isLoading: vaultKeyLoading, isSetup, isUnlocked } = useVaultKey();
-    const { isLocked } = useLock();
+    const { isLoading: vaultKeyLoading, isSetup, isUnlocked, isMetaUnavailable } = useVaultKey();
+    const { isLocked, isSettingsLoading, isSettingsUnavailable } = useLock();
     const location = useLocation();
 
     // Show loading while checking auth or vault key status
-    if (authLoading || (user && vaultKeyLoading)) {
+    if (authLoading || (user && (vaultKeyLoading || isSettingsLoading))) {
         return <LoadingScreen />;
     }
 
     // Not authenticated — redirect to login
     if (!user) {
         return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (isMetaUnavailable || isSettingsUnavailable) {
+        return <VaultUnavailableScreen />;
     }
 
     // Authenticated but vault not set up — only allow /setup

@@ -1,6 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
 import { useVaultKey } from "./VaultKeyProvider";
+import { VaultUnavailableScreen } from "./VaultUnavailableScreen";
 
 /**
  * Route guard for public-only pages (e.g. /login).
@@ -8,7 +9,7 @@ import { useVaultKey } from "./VaultKeyProvider";
  */
 export default function PublicRoute() {
     const { user, loading } = useAuth();
-    const { isLoading: vaultKeyLoading, isSetup, isUnlocked } = useVaultKey();
+    const { isLoading: vaultKeyLoading, isSetup, isUnlocked, isMetaUnavailable } = useVaultKey();
 
     if (loading) {
         return (
@@ -31,6 +32,7 @@ export default function PublicRoute() {
                 </div>
             );
         }
+        if (isMetaUnavailable) return <VaultUnavailableScreen />;
         if (!isSetup) return <Navigate to="/setup" replace />;
         if (!isUnlocked) return <Navigate to="/unlock" replace />;
         return <Navigate to="/" replace />;

@@ -1,34 +1,96 @@
-import { db } from "../firebase";
-import {
-  collection,
-  getDocs,
-  query,
-  addDoc,
-  doc,
-  updateDoc,
-  serverTimestamp,
-  deleteDoc,
-  orderBy,
-} from "firebase/firestore";
 import { TVault } from "./types";
 import { decryptData, encryptData } from "./crypto";
+import {
+  listActiveLocalVaults,
+  subscribeLocalChange,
+} from "./local-store";
+import {
+  ensureUserSync,
+  pullVaults,
+  saveVaultLocalFirst,
+} from "./local-sync";
+
+const newVaultId = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`;
+
+const toRawVault = (record: {
+  id: string;
+  payload: Record<string, unknown>;
+}) => ({
+  ...record.payload,
+  id: record.id,
+});
 
 export const getVaults = async (userId: string, masterKey: string) => {
   const vaults = await getRawVaults(userId);
-  return vaults.map((doc) => decryptData(doc, masterKey)) as TVault[];
+  return vaults.map((raw) => decryptData(raw, masterKey)) as TVault[];
 };
 
 export const getRawVaults = async (userId: string) => {
-  const vaultCollection = collection(db, "vault-db");
-  const userVaultsCollection = doc(vaultCollection, userId);
+  ensureUserSync(userId);
+  let records = await listActiveLocalVaults(userId);
+  if (records.length === 0) {
+    try {
+      await pullVaults(userId);
+    } catch {
+      // Stay on whatever is already local (possibly empty).
+    }
+    records = await listActiveLocalVaults(userId);
+  }
+  return records.map(toRawVault);
+};
 
-  const q = query(
-    collection(userVaultsCollection, "vaults"),
-    orderBy("createdAt", "asc")
-  );
-  const querySnapshot = await getDocs(q);
+export const subscribeVaults = (
+  userId: string,
+  masterKey: string,
+  onData: (vaults: TVault[]) => void,
+  onError?: (error: Error) => void
+) => {
+  let stopped = false;
+  ensureUserSync(userId);
 
-  return querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+  const emit = async () => {
+    if (stopped) return;
+    try {
+      const records = await listActiveLocalVaults(userId);
+      const vaults = records.map((record) =>
+        decryptData(toRawVault(record), masterKey)
+      ) as TVault[];
+      onData(vaults);
+    } catch (error) {
+      onError?.(error instanceof Error ? error : new Error(String(error)));
+    }
+  };
+
+  const unsubscribe = subscribeLocalChange("vaults", userId, () => {
+    void emit();
+  });
+
+  void (async () => {
+    const local = await listActiveLocalVaults(userId);
+    if (stopped) return;
+    if (local.length === 0) {
+      try {
+        await pullVaults(userId);
+      } catch (error) {
+        const stillEmpty = (await listActiveLocalVaults(userId)).length === 0;
+        if (!stopped && stillEmpty) {
+          onError?.(
+            error instanceof Error ? error : new Error(String(error))
+          );
+          return;
+        }
+      }
+    }
+    await emit();
+  })();
+
+  return () => {
+    stopped = true;
+    unsubscribe();
+  };
 };
 
 export const addVault = async (params: {
@@ -36,16 +98,25 @@ export const addVault = async (params: {
   masterKey: string;
   vaultData: Omit<TVault, "id">;
 }) => {
-  const data = encryptData(params.vaultData, params.masterKey);
-  const vaultCollection = collection(db, "vault-db");
-  const userVaultsCollection = doc(vaultCollection, params.userId);
-  const userVaultsSubCollection = collection(userVaultsCollection, "vaults");
+  const id = newVaultId();
+  const now = Date.now();
+  const encrypted = encryptData(params.vaultData, params.masterKey) as Record<
+    string,
+    unknown
+  >;
+  delete encrypted.id;
 
-  const newVaultRef = await addDoc(userVaultsSubCollection, {
-    ...data,
-    createdAt: serverTimestamp(),
+  await saveVaultLocalFirst({
+    userId: params.userId,
+    id,
+    payload: encrypted,
+    createdAt: now,
+    updatedAt: now,
+    deleted: false,
+    dirty: true,
   });
-  return { id: newVaultRef.id, ...params.vaultData };
+
+  return { id, ...params.vaultData };
 };
 
 export const updateVault = async (params: {
@@ -54,16 +125,26 @@ export const updateVault = async (params: {
   vaultId: string;
   vaultData: Partial<TVault>;
 }) => {
-  const data = encryptData(params.vaultData, params.masterKey);
+  const existing = (await listActiveLocalVaults(params.userId)).find(
+    (vault) => vault.id === params.vaultId
+  );
+  const encrypted = encryptData(params.vaultData, params.masterKey) as Record<
+    string,
+    unknown
+  >;
+  delete encrypted.id;
 
-  const vaultCollection = collection(db, "vault-db");
-  const userVaultsCollection = doc(vaultCollection, params.userId);
-  const vaultsSubCollection = collection(userVaultsCollection, "vaults");
-  const vaultDocRef = doc(vaultsSubCollection, params.vaultId);
-
-  await updateDoc(vaultDocRef, {
-    ...data,
-    updatedAt: serverTimestamp(),
+  await saveVaultLocalFirst({
+    userId: params.userId,
+    id: params.vaultId,
+    payload: {
+      ...(existing?.payload ?? {}),
+      ...encrypted,
+    },
+    createdAt: existing?.createdAt ?? Date.now(),
+    updatedAt: Date.now(),
+    deleted: false,
+    dirty: true,
   });
 
   return { id: params.vaultId, ...params.vaultData };
@@ -73,12 +154,19 @@ export const deleteVault = async (params: {
   userId: string;
   vaultId: string;
 }) => {
-  const vaultCollection = collection(db, "vault-db");
-  const userVaultsCollection = doc(vaultCollection, params.userId);
-  const vaultsSubCollection = collection(userVaultsCollection, "vaults");
-  const vaultDocRef = doc(vaultsSubCollection, params.vaultId);
+  const existing = (await listActiveLocalVaults(params.userId)).find(
+    (vault) => vault.id === params.vaultId
+  );
 
-  await deleteDoc(vaultDocRef);
+  await saveVaultLocalFirst({
+    userId: params.userId,
+    id: params.vaultId,
+    payload: existing?.payload ?? {},
+    createdAt: existing?.createdAt ?? Date.now(),
+    updatedAt: Date.now(),
+    deleted: true,
+    dirty: true,
+  });
 
   return { id: params.vaultId };
 };

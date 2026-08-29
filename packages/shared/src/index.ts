@@ -6,6 +6,7 @@ export * from './lib/configs';
 export * from './lib/crypto';
 export * from './lib/keys';
 export * from './lib/lock-utils';
+export * from './lib/local-sync';
 export * from './lib/query';
 export * from './lib/types';
 export * from './lib/user-meta';

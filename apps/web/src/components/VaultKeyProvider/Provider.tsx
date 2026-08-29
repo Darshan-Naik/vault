@@ -10,6 +10,8 @@ import {
   resetRecoveryKey as resetRecoveryKeyMeta,
   resetPasswordWithRecovery as resetPasswordWithRecoveryMeta,
   validateRecoveryKey as validateRecoveryKeyMeta,
+  ensureUserSync,
+  stopUserSync,
 } from "@vault/shared";
 
 export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
@@ -18,13 +20,17 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [userMeta, setUserMeta] = useState<TUserMeta | null>(null);
   const [masterKey, setMasterKey] = useState<string | null>(null);
+  const [isMetaUnavailable, setIsMetaUnavailable] = useState(false);
 
   // Load user metadata when user is available
   useEffect(() => {
+    let cancelled = false;
+
     const loadUserMeta = async () => {
       if (!user?.uid) {
         setUserMeta(null);
         setMasterKey(null);
+        setIsMetaUnavailable(false);
         setIsLoading(false);
         return;
       }
@@ -32,16 +38,44 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       try {
         const meta = await getUserMeta(user.uid);
+        if (cancelled) return;
         setUserMeta(meta);
+        setIsMetaUnavailable(false);
       } catch (error) {
         console.error("Error loading user metadata:", error);
-        setUserMeta(null);
+        if (cancelled) return;
+        // Keep any previously loaded meta so a transient offline error
+        // cannot send an existing user into first-time setup.
+        setIsMetaUnavailable(true);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadUserMeta();
+
+    const retry = () => {
+      if (user?.uid) {
+        loadUserMeta();
+      }
+    };
+
+    window.addEventListener("online", retry);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("online", retry);
+    };
+  }, [user?.uid]);
+
+  useEffect(() => {
+    if (!user?.uid) {
+      return;
+    }
+    ensureUserSync(user.uid);
+    return () => stopUserSync(user.uid);
   }, [user?.uid]);
 
   // Clear state when user logs out
@@ -232,6 +266,7 @@ export function VaultKeyProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     isSetup: !!userMeta,
     isUnlocked: !!masterKey,
+    isMetaUnavailable: isMetaUnavailable && !userMeta,
     masterKey,
     setup,
     confirmSetup,

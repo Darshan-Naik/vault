@@ -3,14 +3,7 @@
  * Supports Face ID, Touch ID, Windows Hello, and Android fingerprint
  */
 
-import { db } from "../firebase";
-import {
-  doc,
-  getDoc,
-  setDoc,
-  updateDoc,
-  deleteField,
-} from "firebase/firestore";
+import { getSettingsLocalFirst, saveSettingsLocalFirst } from "./local-sync";
 
 // Check if WebAuthn is available
 export const isBiometricAvailable = async (): Promise<boolean> => {
@@ -55,80 +48,37 @@ const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
   return bytes.buffer;
 };
 
-// Get user settings document reference
-const getUserSettingsRef = (userId: string) => {
-  return doc(db, "user-settings", userId);
-};
-
-// Add credential ID to array in Firestore (supports multiple devices)
+// Add credential ID (supports multiple devices)
 export const saveBiometricCredential = async (
   userId: string,
   credentialId: string
 ): Promise<void> => {
-  try {
-    const userSettingsRef = getUserSettingsRef(userId);
-    const userSettingsSnap = await getDoc(userSettingsRef);
-
-    let credentialIds: string[] = [];
-
-    if (userSettingsSnap.exists()) {
-      const data = userSettingsSnap.data();
-      if (data.biometricCredentialIds) {
-        credentialIds = data.biometricCredentialIds;
-      }
-    }
-
-    // Add new credential if not already present
-    if (!credentialIds.includes(credentialId)) {
-      credentialIds.push(credentialId);
-    }
-
-    await setDoc(
-      userSettingsRef,
-      { biometricCredentialIds: credentialIds },
-      { merge: true }
-    );
-  } catch (error) {
-    console.error("Error saving biometric credential:", error);
-    throw new Error("Failed to save biometric credential");
+  const settings = await getSettingsLocalFirst(userId);
+  const credentialIds = settings?.biometricCredentialIds ?? [];
+  if (!credentialIds.includes(credentialId)) {
+    credentialIds.push(credentialId);
   }
+  await saveSettingsLocalFirst(userId, { biometricCredentialIds: credentialIds });
 };
 
-// Load all credential IDs from Firestore (supports multiple devices)
+// Load all credential IDs (supports multiple devices)
 export const loadBiometricCredentials = async (
   userId: string
 ): Promise<string[]> => {
   try {
-    const userSettingsRef = getUserSettingsRef(userId);
-    const userSettingsSnap = await getDoc(userSettingsRef);
-
-    if (userSettingsSnap.exists()) {
-      const data = userSettingsSnap.data();
-      if (data.biometricCredentialIds) {
-        return data.biometricCredentialIds;
-      }
-    }
-
-    return [];
+    const settings = await getSettingsLocalFirst(userId);
+    return settings?.biometricCredentialIds ?? [];
   } catch (error) {
     console.error("Error loading biometric credentials:", error);
     return [];
   }
 };
 
-// Delete all biometric credentials from Firestore
+// Delete all biometric credentials
 export const deleteBiometricCredential = async (
   userId: string
 ): Promise<void> => {
-  try {
-    const userSettingsRef = getUserSettingsRef(userId);
-    await updateDoc(userSettingsRef, {
-      biometricCredentialIds: deleteField(),
-    });
-  } catch (error) {
-    console.error("Error deleting biometric credential:", error);
-    throw new Error("Failed to delete biometric credential");
-  }
+  await saveSettingsLocalFirst(userId, { biometricCredentialIds: [] });
 };
 
 // Register biometric credential (Face ID/fingerprint enrollment) with PRF support

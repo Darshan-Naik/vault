@@ -6,13 +6,6 @@ import { useAuth } from "../AuthProvider";
 import { Button } from "@/components/ui/button";
 import { PinInput } from "@/components/ui/pin-input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Lock,
   Shield,
   AlertTriangle,
@@ -21,14 +14,12 @@ import {
   Check,
   X,
   ChevronLeft,
-  Timer,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   getBiometricName,
   saveMasterKeyLocally,
   clearMasterKeyLocally,
-  AUTO_LOCK_TIMEOUT_OPTIONS,
 } from "@vault/shared";
 
 export function ButtonLabel() {
@@ -47,8 +38,6 @@ export default function LockSettingsContent() {
     isBiometricEnabled,
     enableBiometric,
     disableBiometric,
-    autoLockTimeoutMs,
-    setAutoLockTimeout,
   } = useLock();
   const [newPin, setNewPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
@@ -141,18 +130,6 @@ export default function LockSettingsContent() {
     }
   };
 
-  const handleAutoLockChange = async (value: string) => {
-    try {
-      await setAutoLockTimeout(Number(value));
-      toast.success("Auto-lock updated");
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to update auto-lock";
-      setError(message);
-      toast.error(message);
-    }
-  };
-
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-lg mx-auto px-6 py-8">
@@ -172,7 +149,7 @@ export default function LockSettingsContent() {
               {hasLockKey ? "Update PIN" : "Set Lock PIN"}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Quick unlock after inactivity
+              Quick unlock when returning to the app
             </p>
           </div>
         </div>
@@ -213,38 +190,9 @@ export default function LockSettingsContent() {
             </div>
           )}
 
-          {/* Auto-lock + biometric — only when PIN is already set */}
+          {/* Biometric toggle - only show when PIN is already set */}
           {hasLockKey && (
-            <div className="space-y-3 pt-4 border-t border-border">
-              <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-card border border-border">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center shrink-0">
-                    <Timer className="w-4 h-4 text-foreground" />
-                  </div>
-                  <div className="text-left min-w-0">
-                    <div className="font-medium text-foreground">Auto-lock</div>
-                    <div className="text-xs text-muted-foreground">
-                      Lock after inactivity, not tab switches
-                    </div>
-                  </div>
-                </div>
-                <Select
-                  value={String(autoLockTimeoutMs)}
-                  onValueChange={handleAutoLockChange}
-                >
-                  <SelectTrigger className="w-[140px] shrink-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {AUTO_LOCK_TIMEOUT_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={String(option.value)}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
+            <div className="pt-4 border-t border-border">
               <button
                 type="button"
                 onClick={handleToggleBiometric}
@@ -292,9 +240,8 @@ export default function LockSettingsContent() {
           {/* Info box */}
           <div className="p-3 rounded-lg bg-muted/50 border border-border">
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Your vault locks after a period of inactivity so you can copy
-              fields into other tabs without being locked out. Use this PIN for
-              quick unlock instead of entering your full password each time.
+              Use this PIN for quick unlock instead of entering your full
+              password each time.
             </p>
           </div>
 

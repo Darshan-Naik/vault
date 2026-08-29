@@ -8,46 +8,65 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      injectRegister: "script",
-      includeAssets: ["logo.jpeg"],
+      injectRegister: false,
+      includeAssets: [
+        "logo.jpeg",
+        "apple-touch-icon.png",
+        "favicon.ico",
+        "favicon-16x16.png",
+        "favicon-32x32.png",
+        "pwa-192x192.png",
+        "pwa-512x512.png",
+        "pwa-maskable-192x192.png",
+        "pwa-maskable-512x512.png",
+      ],
       manifest: {
-        "name": "Vault - Password Manager",
-        "short_name": "Vault",
-        "icons": [
+        name: "Vault - Password Manager",
+        short_name: "Vault",
+        icons: [
           {
-            "src": "/pwa-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "any"
+            src: "/pwa-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any",
           },
           {
-            "src": "/pwa-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "any"
+            src: "/pwa-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any",
           },
           {
-            "src": "/pwa-maskable-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "maskable"
+            src: "/pwa-maskable-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
           },
           {
-            "src": "/pwa-maskable-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png",
-            "purpose": "maskable"
-          }
+            src: "/pwa-maskable-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
         ],
-        "start_url": "/",
-        "display": "standalone",
-        "background_color": "#0f0f0f",
-        "theme_color": "#0f0f0f",
-        "description": "Store your passwords securely"
+        start_url: "/",
+        scope: "/",
+        display: "standalone",
+        orientation: "any",
+        background_color: "#0f0f0f",
+        theme_color: "#0f0f0f",
+        description: "Store your passwords securely, including offline",
+        categories: ["utilities", "security"],
       },
       workbox: {
+        cleanupOutdatedCaches: true,
         navigationPreload: true,
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpeg,webmanifest}"],
+        globPatterns: [
+          "**/*.{js,css,html,ico,png,svg,jpeg,jpg,webp,woff,woff2,webmanifest}",
+        ],
+        navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/__/],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -67,9 +86,20 @@ export default defineConfig({
               },
             },
           },
+          {
+            urlPattern: /^https:\/\/lh[0-9]\.googleusercontent\.com\/.*/i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "google-avatars",
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24 * 30,
+              },
+            },
+          },
         ],
       },
-    })
+    }),
   ],
   envDir: "../../",
   server: {
@@ -79,9 +109,9 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@vault/shared": path.resolve(__dirname, "../../packages/shared/src/index.ts")
+      "@vault/shared": path.resolve(__dirname, "../../packages/shared/src/index.ts"),
     },
-    dedupe: ["react", "react-dom"]
+    dedupe: ["react", "react-dom"],
   },
   build: {
     rollupOptions: {
@@ -94,6 +124,5 @@ export default defineConfig({
         },
       },
     },
-  }
-
+  },
 });

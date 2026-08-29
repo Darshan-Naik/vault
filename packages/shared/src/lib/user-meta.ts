@@ -1,5 +1,3 @@
-import { db } from "../firebase";
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { TUserMeta } from "./types";
 import {
   generateMasterKey,
@@ -10,21 +8,39 @@ import {
   unwrapMasterKey,
 } from "./keys";
 import { encrypt, decrypt } from "./crypto";
-
-const USER_META_COLLECTION = "vault-db";
+import {
+  ensureUserSync,
+  getMetaLocalFirst,
+  saveMetaLocalFirst,
+} from "./local-sync";
+import { getLocalMeta } from "./local-store";
 
 /**
- * Fetch user metadata from Firestore
+ * Fetch user metadata from the local store, hydrating from the cloud if needed.
  */
 export async function getUserMeta(userId: string): Promise<TUserMeta | null> {
-  const docRef = doc(db, USER_META_COLLECTION, userId);
-  const docSnap = await getDoc(docRef);
+  ensureUserSync(userId);
+  return getMetaLocalFirst(userId);
+}
 
-  if (!docSnap.exists()) {
-    return null;
-  }
-
-  return docSnap.data() as TUserMeta;
+async function persistMetaPatch(userMeta: TUserMeta, patch: Partial<TUserMeta>) {
+  const existing = await getLocalMeta(userMeta.userId);
+  const now = Date.now();
+  await saveMetaLocalFirst({
+    userId: userMeta.userId,
+    salt: userMeta.salt,
+    encryptedMasterKeyByPassword:
+      patch.encryptedMasterKeyByPassword ??
+      existing?.encryptedMasterKeyByPassword ??
+      userMeta.encryptedMasterKeyByPassword,
+    encryptedMasterKeyByRecoveryKey:
+      patch.encryptedMasterKeyByRecoveryKey ??
+      existing?.encryptedMasterKeyByRecoveryKey ??
+      userMeta.encryptedMasterKeyByRecoveryKey,
+    encryptedUserID: userMeta.encryptedUserID,
+    createdAt: existing?.createdAt ?? now,
+    updatedAt: now,
+  });
 }
 
 /**
@@ -63,11 +79,11 @@ export async function createUserMeta(
     encryptedUserID,
   };
 
-  const docRef = doc(db, USER_META_COLLECTION, userId);
-  await setDoc(docRef, {
+  const now = Date.now();
+  await saveMetaLocalFirst({
     ...userMeta,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
+    createdAt: now,
+    updatedAt: now,
   });
 
   return { recoveryKey, masterKey };
@@ -168,16 +184,7 @@ export async function changePassword(
     hashedNewPassword
   );
 
-  // Update in Firestore
-  const docRef = doc(db, USER_META_COLLECTION, userMeta.userId);
-  await setDoc(
-    docRef,
-    {
-      encryptedMasterKeyByPassword,
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true }
-  );
+  await persistMetaPatch(userMeta, { encryptedMasterKeyByPassword });
 
   return true;
 }
@@ -213,16 +220,7 @@ export async function resetRecoveryKey(
     hashedRecoveryKey
   );
 
-  // Update in Firestore
-  const docRef = doc(db, USER_META_COLLECTION, userMeta.userId);
-  await setDoc(
-    docRef,
-    {
-      encryptedMasterKeyByRecoveryKey,
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true }
-  );
+  await persistMetaPatch(userMeta, { encryptedMasterKeyByRecoveryKey });
 
   return newRecoveryKey;
 }
@@ -286,17 +284,10 @@ export async function resetPasswordWithRecovery(
       hashedNewRecoveryKey
     );
 
-    // Step 4: Update both in Firestore (atomic update)
-    const docRef = doc(db, USER_META_COLLECTION, userMeta.userId);
-    await setDoc(
-      docRef,
-      {
-        encryptedMasterKeyByPassword,
-        encryptedMasterKeyByRecoveryKey,
-        updatedAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
+    await persistMetaPatch(userMeta, {
+      encryptedMasterKeyByPassword,
+      encryptedMasterKeyByRecoveryKey,
+    });
 
     return { masterKey, newRecoveryKey };
   } catch {

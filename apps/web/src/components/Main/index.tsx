@@ -18,7 +18,7 @@ const Main = () => {
 
   const { user } = useAuth();
   const { masterKey } = useVaultKey();
-  const { data: vaults, isLoading } = useVaults(user?.uid, masterKey);
+  const { data: vaults, isLoading, error } = useVaults(user?.uid, masterKey);
 
   // Derive selected vault from URL param
   const selectedVault = useMemo(
@@ -67,12 +67,20 @@ const Main = () => {
 
           {/* Vault list */}
           <div className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
-            <VaultList
-              vaults={vaults}
-              isLoading={isLoading}
-              handleVaultSelect={handleVaultSelect}
-              selectedVault={selectedVault}
-            />
+            {error && !vaults ? (
+              <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Couldn't load vaults onto this device yet. Connect once to create a local copy.
+                </p>
+              </div>
+            ) : (
+              <VaultList
+                vaults={vaults}
+                isLoading={isLoading}
+                handleVaultSelect={handleVaultSelect}
+                selectedVault={selectedVault}
+              />
+            )}
           </div>
         </aside>
 

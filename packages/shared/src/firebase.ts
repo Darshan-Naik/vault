@@ -1,6 +1,11 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -13,4 +18,27 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+const canUsePersistentCache = () =>
+  typeof window !== "undefined" &&
+  typeof window.document !== "undefined" &&
+  typeof indexedDB !== "undefined";
+
+function createDb() {
+  if (canUsePersistentCache()) {
+    try {
+      return initializeFirestore(app, {
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        }),
+      });
+    } catch (error) {
+      // Already initialized (HMR) or IndexedDB unavailable in this context.
+      console.warn("Firestore persistent cache unavailable", error);
+    }
+  }
+
+  return getFirestore(app);
+}
+
+export const db = createDb();

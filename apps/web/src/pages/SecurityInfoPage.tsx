@@ -192,6 +192,22 @@ export default function SecurityInfoPage() {
                         </div>
                     </section>
 
+                    {/* Offline access */}
+                    <section>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Smartphone className="w-4 h-4 text-primary" />
+                            <h3 className="font-semibold text-foreground">
+                                Local-first on this device
+                            </h3>
+                        </div>
+                        <p className="text-sm text-muted-foreground leading-relaxed">
+                            After you open Vault once while online, this device
+                            keeps an encrypted local copy. Unlock, view, add, and
+                            edit happen on the device first. The cloud is only used
+                            to sync. Google sign-in still needs the internet.
+                        </p>
+                    </section>
+
                     {/* Recovery Key */}
                     <section>
                         <div className="flex items-center gap-2 mb-3">
@@ -216,6 +232,7 @@ export default function SecurityInfoPage() {
                                 "We cannot access your data even if legally required to",
                                 "Only you can unlock your vault with your password or recovery key",
                                 "If you lose both, your data is permanently inaccessible",
+                                "On a device you've already used, the full vault works without a network",
                             ].map((item, i) => (
                                 <li
                                     key={i}

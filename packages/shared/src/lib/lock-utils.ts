@@ -1,29 +1,11 @@
-import { db } from "../firebase";
-import { doc, getDoc, setDoc, updateDoc, deleteField } from "firebase/firestore";
 import CryptoJS from "crypto-js";
-
-/** 0 = lock as soon as the app is hidden (tab switch / app switch). */
-export const AUTO_LOCK_TIMEOUT_OPTIONS = [
-  { value: 0, label: "Immediately" },
-  { value: 60_000, label: "1 minute" },
-  { value: 5 * 60_000, label: "5 minutes" },
-  { value: 15 * 60_000, label: "15 minutes" },
-  { value: 30 * 60_000, label: "30 minutes" },
-  { value: 60 * 60_000, label: "1 hour" },
-] as const;
+import { getSettingsLocalFirst, saveSettingsLocalFirst } from "./local-sync";
 
 export const DEFAULT_AUTO_LOCK_TIMEOUT_MS = 5 * 60_000;
 
 export type LockSettings = {
   pinHash: string | null;
-  autoLockTimeoutMs: number;
 };
-
-const isValidAutoLockTimeout = (value: unknown): value is number =>
-  typeof value === "number" &&
-  Number.isFinite(value) &&
-  value >= 0 &&
-  AUTO_LOCK_TIMEOUT_OPTIONS.some((option) => option.value === value);
 
 /**
  * Hash a PIN using SHA256
@@ -40,14 +22,7 @@ export const validatePin = (pin: string): boolean => {
 };
 
 /**
- * Get user settings document reference
- */
-const getUserSettingsRef = (userId: string) => {
-  return doc(db, "user-settings", userId);
-};
-
-/**
- * Load PIN hash from Firestore for a user
+ * Load PIN hash for a user
  */
 export const loadPinHash = async (userId: string): Promise<string | null> => {
   const settings = await loadLockSettings(userId);
@@ -55,24 +30,18 @@ export const loadPinHash = async (userId: string): Promise<string | null> => {
 };
 
 /**
- * Load lock PIN and auto-lock timeout from Firestore
+ * Load lock PIN from the local store, hydrating from the cloud if needed.
  */
-export const loadLockSettings = async (userId: string): Promise<LockSettings> => {
+export const loadLockSettings = async (
+  userId: string
+): Promise<LockSettings> => {
   try {
-    const userSettingsRef = getUserSettingsRef(userId);
-    const userSettingsSnap = await getDoc(userSettingsRef);
-
-    if (userSettingsSnap.exists()) {
-      const data = userSettingsSnap.data();
-      return {
-        pinHash: data.lockPinHash || null,
-        autoLockTimeoutMs: isValidAutoLockTimeout(data.autoLockTimeoutMs)
-          ? data.autoLockTimeoutMs
-          : DEFAULT_AUTO_LOCK_TIMEOUT_MS,
-      };
+    const settings = await getSettingsLocalFirst(userId);
+    if (settings) {
+      return { pinHash: settings.lockPinHash || null };
     }
 
-    return { pinHash: null, autoLockTimeoutMs: DEFAULT_AUTO_LOCK_TIMEOUT_MS };
+    return { pinHash: null };
   } catch (error) {
     console.error("Error loading lock settings:", error);
     throw new Error("Failed to load lock settings");
@@ -80,47 +49,23 @@ export const loadLockSettings = async (userId: string): Promise<LockSettings> =>
 };
 
 /**
- * Persist auto-lock inactivity timeout
+ * Save PIN hash locally first, then sync.
  */
-export const saveAutoLockTimeout = async (
+export const savePinHash = async (
   userId: string,
-  timeoutMs: number
-): Promise<void> => {
-  if (!isValidAutoLockTimeout(timeoutMs)) {
-    throw new Error("Invalid auto-lock timeout");
-  }
-
-  try {
-    const userSettingsRef = getUserSettingsRef(userId);
-    await setDoc(userSettingsRef, { autoLockTimeoutMs: timeoutMs }, { merge: true });
-  } catch (error) {
-    console.error("Error saving auto-lock timeout:", error);
-    throw new Error("Failed to save auto-lock timeout");
-  }
-};
-
-/**
- * Save PIN hash to Firestore for a user
- */
-export const savePinHash = async (userId: string, pin: string): Promise<string> => {
+  pin: string
+): Promise<string> => {
   if (!validatePin(pin)) {
     throw new Error("PIN must be exactly 4 digits");
   }
 
   const hash = hashPin(pin);
-  
-  try {
-    const userSettingsRef = getUserSettingsRef(userId);
-    await setDoc(userSettingsRef, { lockPinHash: hash }, { merge: true });
-    return hash;
-  } catch (error) {
-    console.error("Error setting PIN:", error);
-    throw new Error("Failed to set PIN");
-  }
+  await saveSettingsLocalFirst(userId, { lockPinHash: hash });
+  return hash;
 };
 
 /**
- * Update PIN hash in Firestore for a user
+ * Update PIN hash locally first, then sync.
  */
 export const updatePinHash = async (
   userId: string,
@@ -138,15 +83,8 @@ export const updatePinHash = async (
   }
 
   const newPinHash = hashPin(newPin);
-  
-  try {
-    const userSettingsRef = getUserSettingsRef(userId);
-    await updateDoc(userSettingsRef, { lockPinHash: newPinHash });
-    return newPinHash;
-  } catch (error) {
-    console.error("Error updating PIN:", error);
-    throw new Error("Failed to update PIN");
-  }
+  await saveSettingsLocalFirst(userId, { lockPinHash: newPinHash });
+  return newPinHash;
 };
 
 /**
@@ -162,15 +100,8 @@ export const verifyPin = (pin: string, storedHash: string): boolean => {
 };
 
 /**
- * Delete PIN hash from Firestore for a user
+ * Delete PIN hash locally first, then sync.
  */
 export const deletePinHash = async (userId: string): Promise<void> => {
-  try {
-    const userSettingsRef = getUserSettingsRef(userId);
-    await updateDoc(userSettingsRef, { lockPinHash: deleteField() });
-  } catch (error) {
-    console.error("Error deleting PIN hash:", error);
-    throw new Error("Failed to delete PIN");
-  }
+  await saveSettingsLocalFirst(userId, { lockPinHash: null });
 };
-

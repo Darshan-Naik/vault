@@ -13,11 +13,30 @@ function Auth() {
   const provider: GoogleAuthProvider = new GoogleAuthProvider();
 
   const handleGoogleSignIn = async (): Promise<void> => {
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      setError(
+        "You're offline. Sign-in needs an internet connection. After you sign in once on this device, the vault works without a network."
+      );
+      return;
+    }
+
     setIsLoading(true);
+    setError("");
     try {
       await signInWithPopup(auth, provider);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      const message = err instanceof Error ? err.message : String(err);
+      const isNetworkError =
+        /network/i.test(message) ||
+        (typeof err === "object" &&
+          err !== null &&
+          "code" in err &&
+          String((err as { code: string }).code).includes("network"));
+      setError(
+        isNetworkError
+          ? "You're offline. Sign-in needs an internet connection."
+          : message
+      );
     } finally {
       setIsLoading(false);
     }

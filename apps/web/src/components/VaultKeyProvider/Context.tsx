@@ -15,6 +15,7 @@ export type VaultKeyContextType = {
   isLoading: boolean;
   isSetup: boolean; // Whether user has set up their vault password
   isUnlocked: boolean; // Whether vault is currently unlocked (master key in memory)
+  isMetaUnavailable: boolean; // Signed in, but vault metadata could not be loaded
   masterKey: string | null;
 
   // Actions
@@ -51,6 +52,7 @@ export const VaultKeyContext = createContext<VaultKeyContextType>({
   isLoading: true,
   isSetup: false,
   isUnlocked: false,
+  isMetaUnavailable: false,
   masterKey: null,
   setup: async () => ({ recoveryKey: "", masterKey: "" }),
   confirmSetup: async () => {},

@@ -9,7 +9,6 @@ import {
   updatePinHash,
   verifyPin,
   deletePinHash,
-  saveAutoLockTimeout,
   DEFAULT_AUTO_LOCK_TIMEOUT_MS,
 } from "@vault/shared";
 import {
@@ -26,10 +25,9 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   // Start locked by default to prevent flash of unlocked content while PIN hash loads
   const [isLocked, setIsLocked] = useState(true);
+  const [isSettingsLoading, setIsSettingsLoading] = useState(true);
+  const [isSettingsUnavailable, setIsSettingsUnavailable] = useState(false);
   const [pinHash, setPinHash] = useState<string | null>(null);
-  const [autoLockTimeoutMs, setAutoLockTimeoutMs] = useState(
-    DEFAULT_AUTO_LOCK_TIMEOUT_MS
-  );
   const lastActivityRef = useRef(Date.now());
 
   // Biometric state (supports multiple devices)
@@ -49,35 +47,55 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
 
   // Load PIN hash and biometric credentials from Firestore when user is available
   useEffect(() => {
+    let cancelled = false;
+
     const loadUserSettings = async () => {
       if (!user?.uid) {
         setPinHash(null);
         setBiometricCredentialIds([]);
-        setAutoLockTimeoutMs(DEFAULT_AUTO_LOCK_TIMEOUT_MS);
         setIsLocked(false);
+        setIsSettingsUnavailable(false);
+        setIsSettingsLoading(false);
         return;
       }
 
+      setIsSettingsLoading(true);
       try {
         const [lockSettings, credentialIds] = await Promise.all([
           loadLockSettings(user.uid),
           loadBiometricCredentials(user.uid),
         ]);
+        if (cancelled) return;
         setPinHash(lockSettings.pinHash);
-        setAutoLockTimeoutMs(lockSettings.autoLockTimeoutMs);
         setBiometricCredentialIds(credentialIds);
         // If PIN hash exists, start locked; otherwise start unlocked
         setIsLocked(!!lockSettings.pinHash);
+        setIsSettingsUnavailable(false);
+        setIsSettingsLoading(false);
       } catch (error) {
         console.error("Error loading user settings:", error);
-        setPinHash(null);
-        setBiometricCredentialIds([]);
-        setAutoLockTimeoutMs(DEFAULT_AUTO_LOCK_TIMEOUT_MS);
-        setIsLocked(false);
+        if (cancelled) return;
+        // Stay locked so PIN protection cannot be skipped when offline.
+        setIsLocked(true);
+        setIsSettingsUnavailable(true);
+        setIsSettingsLoading(false);
       }
     };
 
     loadUserSettings();
+
+    const retry = () => {
+      if (user?.uid) {
+        loadUserSettings();
+      }
+    };
+
+    window.addEventListener("online", retry);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("online", retry);
+    };
   }, [user?.uid]);
 
   const hasLockKey = useCallback(() => {
@@ -141,18 +159,6 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
       return false;
     },
     [pinHash]
-  );
-
-  const setAutoLockTimeout = useCallback(
-    async (timeoutMs: number) => {
-      if (!user?.uid) {
-        throw new Error("User must be authenticated to update auto-lock");
-      }
-
-      await saveAutoLockTimeout(user.uid, timeoutMs);
-      setAutoLockTimeoutMs(timeoutMs);
-    },
-    [user?.uid]
   );
 
   const resetLockKey = useCallback(async () => {
@@ -252,7 +258,6 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
         setIsLocked(false);
         setPinHash(null);
         setBiometricCredentialIds([]);
-        setAutoLockTimeoutMs(DEFAULT_AUTO_LOCK_TIMEOUT_MS);
       }
     });
 
@@ -275,15 +280,13 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     };
 
     const isIdleExpired = () =>
-      autoLockTimeoutMs > 0 &&
-      Date.now() - lastActivityRef.current >= autoLockTimeoutMs;
+      Date.now() - lastActivityRef.current >= DEFAULT_AUTO_LOCK_TIMEOUT_MS;
 
     const scheduleIdleLock = () => {
       clearIdleTimer();
-      if (autoLockTimeoutMs <= 0) return;
 
       const remaining = Math.max(
-        autoLockTimeoutMs - (Date.now() - lastActivityRef.current),
+        DEFAULT_AUTO_LOCK_TIMEOUT_MS - (Date.now() - lastActivityRef.current),
         0
       );
       idleTimer = setTimeout(() => {
@@ -303,10 +306,6 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
 
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        if (autoLockTimeoutMs === 0) {
-          lock();
-          return;
-        }
         scheduleIdleLock();
         return;
       }
@@ -341,10 +340,12 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
       );
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [hasLockKey, lock, isLocked, autoLockTimeoutMs]);
+  }, [hasLockKey, lock, isLocked]);
 
   const value = {
     isLocked,
+    isSettingsLoading,
+    isSettingsUnavailable,
     unlock,
     lock,
     bypassLock,
@@ -352,8 +353,6 @@ export function LockProvider({ children }: { children: React.ReactNode }) {
     setLockKey,
     updateLockKey,
     resetLockKey,
-    autoLockTimeoutMs,
-    setAutoLockTimeout,
     // Biometric (supports multiple devices)
     isBiometricAvailable: biometricAvailable,
     isBiometricEnabled: biometricCredentialIds.length > 0,
