@@ -1,5 +1,6 @@
 import CryptoJS from "crypto-js";
 import { encryptedKeys } from "./configs";
+import { TCustomField } from "./types";
 
 // Constants for encryption
 const IV_LENGTH = 16; // 128 bits for AES
@@ -84,8 +85,27 @@ export const decrypt = (encryptedValue: string, keyInput: string): string => {
   return decrypted.toString(CryptoJS.enc.Utf8);
 };
 
+const mapCustomFields = (
+  fields: TCustomField[],
+  transform: (field: TCustomField) => TCustomField
+) => fields.map(transform);
+
+const encryptCustomFields = (fields: TCustomField[], sign: string) =>
+  mapCustomFields(fields, (field) =>
+    field.isSecret && field.value
+      ? { ...field, value: encrypt(field.value, sign) }
+      : field
+  );
+
+const decryptCustomFields = (fields: TCustomField[], sign: string) =>
+  mapCustomFields(fields, (field) =>
+    field.isSecret && field.value
+      ? { ...field, value: decrypt(field.value, sign) }
+      : field
+  );
+
 export const decryptData = <T>(data: T, sign: string) => {
-  const decryptedData = { ...data };
+  const decryptedData = { ...data } as T;
   for (const key in decryptedData) {
     if (encryptedKeys.includes(key)) {
       decryptedData[key] = decrypt(
@@ -94,11 +114,20 @@ export const decryptData = <T>(data: T, sign: string) => {
       ) as T[Extract<keyof T, string>];
     }
   }
+  const withCustomFields = decryptedData as T & {
+    customFields?: TCustomField[];
+  };
+  if (Array.isArray(withCustomFields.customFields)) {
+    withCustomFields.customFields = decryptCustomFields(
+      withCustomFields.customFields,
+      sign
+    );
+  }
   return decryptedData;
 };
 
 export const encryptData = <T>(data: T, sign: string) => {
-  const encryptedData = { ...data };
+  const encryptedData = { ...data } as T;
   for (const key in encryptedData) {
     if (encryptedKeys.includes(key)) {
       encryptedData[key] = encrypt(
@@ -106,6 +135,15 @@ export const encryptData = <T>(data: T, sign: string) => {
         sign
       ) as T[Extract<keyof T, string>];
     }
+  }
+  const withCustomFields = encryptedData as T & {
+    customFields?: TCustomField[];
+  };
+  if (Array.isArray(withCustomFields.customFields)) {
+    withCustomFields.customFields = encryptCustomFields(
+      withCustomFields.customFields,
+      sign
+    );
   }
   return encryptedData;
 };

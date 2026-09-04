@@ -3,7 +3,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { encryptedKeys } from "@vault/shared";
+import { encryptedKeys, VaultFieldValue } from "@vault/shared";
 import { cn } from "@vault/shared";
 import { Copy, Eye, EyeOff, Check } from "lucide-react";
 import { useState } from "react";
@@ -15,8 +15,9 @@ type ValueCardProps = {
   id: string;
   isEditable?: boolean;
   className?: string;
-  handleChange: (id: string, value: string) => void;
+  handleChange: (id: string, value: VaultFieldValue) => void;
   multiline?: boolean;
+  isSecret?: boolean;
 };
 
 const ValueCard = ({
@@ -27,6 +28,7 @@ const ValueCard = ({
   className,
   handleChange,
   multiline,
+  isSecret,
 }: ValueCardProps) => {
   const [show, setShow] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -41,7 +43,7 @@ const ValueCard = ({
     }
   };
 
-  const isEncrypted = encryptedKeys.includes(id);
+  const isEncrypted = isSecret ?? encryptedKeys.includes(id);
   const displayValue =
     isEncrypted && !show ? value?.toString().replace(/./g, "•") : value;
 

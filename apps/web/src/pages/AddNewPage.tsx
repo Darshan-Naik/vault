@@ -13,7 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { vaultTypes, iconMap, getDefaultValues } from "@vault/shared";
+import { vaultTypes, iconMap, getDefaultValues, VaultFieldValue } from "@vault/shared";
 import { TVault } from "@vault/shared";
 import { Textarea } from "@/components/ui/textarea";
 import ConfiguredForm from "@/components/Main/AddNew/ConfiguredForm";
@@ -54,18 +54,19 @@ export default function AddNewPage() {
         }
     };
 
-    const handleChange = (key: string, value: string) => {
+    const handleChange = (key: string, value: VaultFieldValue) => {
         setData((prevData: TVault | undefined) => {
             const newData = prevData ? { ...prevData } : ({} as TVault);
 
             // When type changes, reset to new type's default values
             if (key === "type" && value !== prevData?.type) {
-                const defaults = getDefaultValues(value);
+                const defaults = getDefaultValues(value as string);
                 return {
                     type: value,
                     id: newData.id,
                     title: newData.title,
                     note: newData.note,
+                    customFields: newData.customFields,
                     ...defaults,
                 } as TVault;
             }

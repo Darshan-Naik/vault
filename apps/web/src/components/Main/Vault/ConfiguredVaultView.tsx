@@ -1,12 +1,18 @@
-import { getVaultConfig, RowConfig, FieldConfig } from "@vault/shared";
+import {
+  getVaultConfig,
+  RowConfig,
+  FieldConfig,
+  VaultFieldValue,
+} from "@vault/shared";
 import { TVault } from "@vault/shared";
 import { cn } from "@vault/shared";
 import ValueCard from "./ValueCard";
+import CustomFieldsEditor from "../CustomFieldsEditor";
 
 type ConfiguredVaultViewProps = {
   vault: TVault;
   isEdit: boolean;
-  handleChange: (key: string, value: string) => void;
+  handleChange: (key: string, value: VaultFieldValue) => void;
 };
 
 const ConfiguredVaultView = ({
@@ -50,6 +56,25 @@ const ConfiguredVaultView = ({
   return (
     <div className="space-y-5">
       {config.rows.map((row, index) => renderRow(row, index))}
+
+      {isEdit ? (
+        <CustomFieldsEditor
+          fields={vault.customFields}
+          onChange={(fields) => handleChange("customFields", fields)}
+        />
+      ) : (
+        vault.customFields?.map((field) => (
+          <ValueCard
+            key={field.id}
+            label={field.label}
+            value={field.value}
+            id={field.id}
+            isEditable={false}
+            handleChange={handleChange}
+            isSecret={field.isSecret}
+          />
+        ))
+      )}
 
       {/* Notes field - common to all vault types */}
       <ValueCard

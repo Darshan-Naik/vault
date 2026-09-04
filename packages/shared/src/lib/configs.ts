@@ -1,4 +1,5 @@
 import { KeyRound, Landmark, CreditCard, LucideIcon } from "lucide-react";
+import { TCustomField } from "./types";
 
 // Field configuration type
 export type FieldConfig = {
@@ -259,4 +260,28 @@ export const getDefaultValues = (
 ): Record<string, string | number> => {
   const config = getVaultConfig(type);
   return config?.defaultValues || {};
+};
+
+export const createCustomField = (): TCustomField => ({
+  id:
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `cf_${Date.now().toString(16)}${Math.random().toString(16).slice(2)}`,
+  label: "",
+  value: "",
+  isSecret: false,
+});
+
+export const sanitizeCustomFields = (
+  fields?: TCustomField[]
+): TCustomField[] => {
+  if (!fields?.length) return [];
+  return fields
+    .map((field) => ({
+      id: field.id,
+      label: field.label.trim() || (field.value.trim() ? "Custom field" : ""),
+      value: field.value,
+      isSecret: Boolean(field.isSecret),
+    }))
+    .filter((field) => field.label);
 };

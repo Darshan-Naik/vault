@@ -1,5 +1,6 @@
 import { TVault } from "./types";
 import { decryptData, encryptData } from "./crypto";
+import { sanitizeCustomFields } from "./configs";
 import {
   listActiveLocalVaults,
   subscribeLocalChange,
@@ -100,7 +101,11 @@ export const addVault = async (params: {
 }) => {
   const id = newVaultId();
   const now = Date.now();
-  const encrypted = encryptData(params.vaultData, params.masterKey) as Record<
+  const vaultData = {
+    ...params.vaultData,
+    customFields: sanitizeCustomFields(params.vaultData.customFields),
+  };
+  const encrypted = encryptData(vaultData, params.masterKey) as Record<
     string,
     unknown
   >;
@@ -116,7 +121,7 @@ export const addVault = async (params: {
     dirty: true,
   });
 
-  return { id, ...params.vaultData };
+  return { id, ...vaultData };
 };
 
 export const updateVault = async (params: {
@@ -128,7 +133,11 @@ export const updateVault = async (params: {
   const existing = (await listActiveLocalVaults(params.userId)).find(
     (vault) => vault.id === params.vaultId
   );
-  const encrypted = encryptData(params.vaultData, params.masterKey) as Record<
+  const vaultData = {
+    ...params.vaultData,
+    customFields: sanitizeCustomFields(params.vaultData.customFields),
+  };
+  const encrypted = encryptData(vaultData, params.masterKey) as Record<
     string,
     unknown
   >;
@@ -147,7 +156,7 @@ export const updateVault = async (params: {
     dirty: true,
   });
 
-  return { id: params.vaultId, ...params.vaultData };
+  return { id: params.vaultId, ...vaultData };
 };
 
 export const deleteVault = async (params: {

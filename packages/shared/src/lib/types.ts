@@ -1,28 +1,38 @@
+export type TCustomField = {
+  id: string;
+  label: string;
+  value: string;
+  isSecret?: boolean;
+};
+
+export type VaultFieldValue = string | TCustomField[];
+
+type TVaultMeta = {
+  id: string;
+  note?: string;
+  title: string;
+  customFields?: TCustomField[];
+};
+
 export type TVault = TCard | TCredential | TBank;
 
-export type TCard = {
+export type TCard = TVaultMeta & {
   type: "CARD";
   number: number;
   cvv?: number;
   pin?: number;
   expiry?: string;
-  id: string;
-  note?: string;
-  title: string;
 };
 
-export type TCredential = {
+export type TCredential = TVaultMeta & {
   type: "CREDENTIAL";
   uid: string;
   password?: string;
   masterPassword?: string;
   url?: string;
-  id: string;
-  note?: string;
-  title: string;
 };
 
-export type TBank = {
+export type TBank = TVaultMeta & {
   type: "BANK";
   accountNumber: number;
   customerId?: string;
@@ -30,9 +40,6 @@ export type TBank = {
   password?: string;
   masterPassword?: string;
   ifsc?: string;
-  id: string;
-  note?: string;
-  title: string;
 };
 
 // User metadata stored in Firestore for encryption key management

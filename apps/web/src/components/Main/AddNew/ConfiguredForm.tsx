@@ -1,11 +1,18 @@
 import { Input } from "@/components/ui/input";
-import { getVaultConfig, RowConfig, FieldConfig } from "@vault/shared";
+import {
+  getVaultConfig,
+  RowConfig,
+  FieldConfig,
+  TCustomField,
+  VaultFieldValue,
+} from "@vault/shared";
 import { cn } from "@vault/shared";
+import CustomFieldsEditor from "../CustomFieldsEditor";
 
 type ConfiguredFormProps = {
   type: string;
   data: Record<string, unknown>;
-  handleChange: (key: string, value: string) => void;
+  handleChange: (key: string, value: VaultFieldValue) => void;
 };
 
 const ConfiguredForm = ({ type, data, handleChange }: ConfiguredFormProps) => {
@@ -49,6 +56,10 @@ const ConfiguredForm = ({ type, data, handleChange }: ConfiguredFormProps) => {
   return (
     <div className="space-y-4">
       {config.rows.map((row, index) => renderRow(row, index))}
+      <CustomFieldsEditor
+        fields={(data?.customFields as TCustomField[]) || []}
+        onChange={(fields) => handleChange("customFields", fields)}
+      />
     </div>
   );
 };

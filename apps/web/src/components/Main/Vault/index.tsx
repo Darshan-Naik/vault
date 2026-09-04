@@ -1,4 +1,4 @@
-import { TVault } from "@vault/shared";
+import { TVault, VaultFieldValue } from "@vault/shared";
 import { iconMap, typeLabels } from "@vault/shared";
 import ConfiguredVaultView from "./ConfiguredVaultView";
 import { ChevronLeft, Edit, Save, X } from "lucide-react";
@@ -30,7 +30,7 @@ const Vault = ({ vault, handleVaultSelect, isEdit, setIsEdit }: VaultProps) => {
   const { user } = useAuth();
   const { masterKey } = useVaultKey();
 
-  const handleChange = (key: string, value: string) => {
+  const handleChange = (key: string, value: VaultFieldValue) => {
     setVaultData((prevData: TVault | undefined) => {
       const newData = prevData ? { ...prevData } : ({} as TVault);
       (newData as TVault & { [key: string]: unknown })[key] = value;
