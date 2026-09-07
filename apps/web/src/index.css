@@ -292,3 +292,12 @@
     @apply text-amber-400;
   }
 }
+
+/* Prevent iOS Safari zoom on input focus - inputs need 16px minimum font size */
+@supports (-webkit-touch-callout: none) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
