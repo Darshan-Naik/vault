@@ -61,6 +61,8 @@ export default defineConfig({
       workbox: {
         cleanupOutdatedCaches: true,
         navigationPreload: true,
+        skipWaiting: true,
+        clientsClaim: true,
         globPatterns: [
           "**/*.{js,css,html,ico,png,svg,jpeg,jpg,webp,woff,woff2,webmanifest}",
         ],
@@ -97,6 +99,34 @@ export default defineConfig({
               },
             },
           },
+          {
+            urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "firestore-api",
+              networkTimeoutSeconds: 3,
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24,
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/identitytoolkit\.googleapis\.com\/.*/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "firebase-auth-api",
+              networkTimeoutSeconds: 5,
+            },
+          },
+          {
+            urlPattern: /^https:\/\/securetoken\.googleapis\.com\/.*/i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "firebase-token-api",
+              networkTimeoutSeconds: 5,
+            },
+          },
         ],
       },
     }),
@@ -118,7 +148,9 @@ export default defineConfig({
       output: {
         manualChunks: {
           react: ["react", "react-dom", "react-router-dom"],
-          firebase: ["firebase/app", "firebase/auth", "firebase/firestore"],
+          "firebase-core": ["firebase/app"],
+          "firebase-auth": ["firebase/auth"],
+          "firebase-firestore": ["firebase/firestore"],
           crypto: ["crypto-js"],
           ui: ["lucide-react", "clsx", "tailwind-merge"],
         },

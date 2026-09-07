@@ -5,6 +5,12 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/jpeg" href="/logo.jpeg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Preconnect to critical domains for faster cold start -->
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin />
+  <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
+  <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com" />
   <meta name="description" content="Store your passwords securely" />
   <meta name="theme-color" content="#0f0f0f" />
   <meta name="mobile-web-app-capable" content="yes" />
